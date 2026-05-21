@@ -1,0 +1,131 @@
+﻿@model IEnumerable<WebApplication1.Models.ReturnRequest>
+
+@{
+    ViewData["Title"] = "My Returns";
+}
+
+<link href="~/css/returns.css" rel="stylesheet" />
+
+<div class="returns-page">
+    <a href="/Account" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to My Account
+    </a>
+
+    <div class="page-header">
+        <h1>
+            <i class="fa-solid fa-rotate-left"></i>
+            My Returns
+        </h1>
+        <a href="/Account/RequestReturn" class="btn-new-return">
+            <i class="fa-solid fa-plus"></i>
+            Request a Return
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <h3>No Returns Yet</h3>
+            <p>You haven't requested any returns. If you need to return an item, click the button below.</p>
+            <a href="/Account/RequestReturn" class="btn-new-return">
+                <i class="fa-solid fa-rotate-left"></i>
+                Request a Return
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="returns-list">
+            @foreach (var returnRequest in Model)
+            {
+                <div class="return-card">
+                    <div class="return-header">
+                        <div class="return-info">
+                            <h3>Return Request #@returnRequest.Id</h3>
+                            <div class="return-meta">
+                                <span>
+                                    <i class="fa-solid fa-calendar"></i>
+                                    Requested: @returnRequest.RequestDate.ToString("MMM dd, yyyy")
+                                </span>
+                                <span>
+                                    <i class="fa-solid fa-receipt"></i>
+                                    Order #@returnRequest.OrderId
+                                </span>
+                                @if (!string.IsNullOrEmpty(returnRequest.ReturnAuthorizationNumber))
+                                {
+                                    <span>
+                                        <i class="fa-solid fa-barcode"></i>
+                                        RAN: @returnRequest.ReturnAuthorizationNumber
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <span class="status-badge status-@returnRequest.Status.ToLower()">
+                            @returnRequest.Status
+                        </span>
+                    </div>
+
+                    <div class="return-body">
+                        @if (!string.IsNullOrEmpty(returnRequest.OrderItem?.ImageUrl))
+                        {
+                            <img src="@returnRequest.OrderItem.ImageUrl" alt="@returnRequest.OrderItem.ProductName" class="product-image" />
+                        }
+                        else
+                        {
+                            <img src="/images/no-image.jpg" alt="No image" class="product-image" />
+                        }
+
+                        <div class="product-details">
+                            <h4>@returnRequest.OrderItem?.ProductName</h4>
+                            <p><strong>SKU:</strong> @returnRequest.OrderItem?.ProductSKU</p>
+                            <p><strong>Quantity:</strong> @returnRequest.OrderItem?.Quantity</p>
+                            <p><strong>Refund Amount:</strong> R @returnRequest.RefundAmount.ToString("N2")</p>
+                            <div class="reason">
+                                <strong>Reason:</strong> @returnRequest.ReturnReason
+                                @if (!string.IsNullOrEmpty(returnRequest.DetailedReason))
+                                {
+                                    <br />
+                        
+                                    <small>@returnRequest.DetailedReason</small>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="return-actions">
+                            <a href="/Account/ReturnDetails/@returnRequest.Id" class="btn-view-return">
+                                <i class="fa-solid fa-eye"></i>
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Indicator -->
+                    <div class="timeline-indicator">
+                        <div class="timeline-step @(returnRequest.Status == "Pending" || returnRequest.Status == "Approved" || returnRequest.Status == "Shipped" || returnRequest.Status == "Received" || returnRequest.Status == "Refunded" ? "completed" : "")">
+                            <div class="timeline-dot"><i class="fa-solid fa-check"></i></div>
+                            <div class="timeline-label">Requested</div>
+                        </div>
+                        <div class="timeline-step @(returnRequest.Status == "Approved" || returnRequest.Status == "Shipped" || returnRequest.Status == "Received" || returnRequest.Status == "Refunded" ? "completed" : returnRequest.Status == "Pending" ? "active" : "")">
+                            <div class="timeline-dot"><i class="fa-solid fa-check"></i></div>
+                            <div class="timeline-label">Approved</div>
+                        </div>
+                        <div class="timeline-step @(returnRequest.Status == "Shipped" || returnRequest.Status == "Received" || returnRequest.Status == "Refunded" ? "completed" : returnRequest.Status == "Approved" ? "active" : "")">
+                            <div class="timeline-dot"><i class="fa-solid fa-truck"></i></div>
+                            <div class="timeline-label">Shipped</div>
+                        </div>
+                        <div class="timeline-step @(returnRequest.Status == "Received" || returnRequest.Status == "Refunded" ? "completed" : returnRequest.Status == "Shipped" ? "active" : "")">
+                            <div class="timeline-dot"><i class="fa-solid fa-box"></i></div>
+                            <div class="timeline-label">Received</div>
+                        </div>
+                        <div class="timeline-step @(returnRequest.Status == "Refunded" ? "completed" : returnRequest.Status == "Received" ? "active" : "")">
+                            <div class="timeline-dot"><i class="fa-solid fa-money-bill"></i></div>
+                            <div class="timeline-label">Refunded</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

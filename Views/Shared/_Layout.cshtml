@@ -1,0 +1,306 @@
+@using WebApplication1.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ICategoryService CategoryService
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ShumoShop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/wishlist-styles.css" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+
+    <header>
+        <!-- TOP BLUE BAR (UNCHANGED) -->
+        <div class="topbar">
+            <div class="topbar__inner">
+                <nav class="topbar__left" aria-label="Quick links">
+                    <button class="topbar-btn" type="button" onclick="FindAStore()">
+                        <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+                        <span>Find a Store</span>
+                    </button>
+                    <button class="topbar-btn" type="button" onclick="OrderTracking()">
+                        <i class="fa-solid fa-truck" aria-hidden="true"></i>
+                        <span>Order Tracking</span>
+                    </button>
+                    <button class="topbar-btn" type="button" onclick="ContactUs()">
+                        <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                        <span>Contact Us</span>
+                    </button>
+                </nav>
+
+                <div class="topbar__right">
+                    <address class="topbar-address">
+                        138 Botha Avenue Lyttleton, Centurion, 0014
+                    </address>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN HEADER (UNCHANGED) -->
+        <div class="main-header">
+            <div class="main-header__innerTop">
+                <!-- LEFT SIDE: Logo + Home Button -->
+                <div class="header-left">
+                    <div class="Image_Logo">
+                        <a class="navbar-brand" href="/" aria-label="ShumoShop Home">
+                            <img src="~/images/ShumoShop-Logo.svg"
+                                 alt="ShumoShop - Shop Smart, Save More"
+                                 class="site-logo" />
+                        </a>
+                    </div>
+                </div>
+
+                <div class="takealot-category-section">
+                    <!-- Yellow bar -->
+                    <div class="takealot-search-bar">
+                        <div class="takealot-container">
+                            <!-- Button -->
+                            <button class="takealot-dept-btn" type="button" id="menuToggle" aria-expanded="false">
+                                <i class="fa-solid fa-bars"></i>
+                                <span>Shop by Department</span>
+                                <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                            </button>
+
+                            <!-- Search -->
+                            <div class="takealot-search-input-wrapper">
+                                <input type="text" class="takealot-search-input" id="takealotSearchInput"
+                                       placeholder="Search for products, brands..." />
+                                <button class="takealot-search-btn" type="button" onclick="performTakealotSearch()">
+                                    <i class="fa-solid fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        @* ⬇️ DROPDOWN MUST LIVE INSIDE .takealot-search-bar *@
+                        @{
+                            var categories = await CategoryService.GetActiveCategoriesWithSubsAsync();
+                        }
+                        <div class="takealot-dropdown-menu" id="flyoutMenu">
+                            <div class="takealot-dropdown-content">
+                                @await Component.InvokeAsync("CategoryNavbar")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: Login/Register, Wishlist, Cart -->
+                <div class="header-actions">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        var appUser = await UserManager.GetUserAsync(User);
+                        var userName = appUser?.Name ?? "Account";
+
+                        <div class="dropdown">
+                            <button class="icon-link dropdown-toggle" type="button"
+                                    id="accountDropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <i class="fa-regular fa-user" aria-hidden="true"></i>
+                                <span>@userName</span>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">Dashboard</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Profile</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile">Edit Profile</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">Change Password</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Orders">Orders</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="MyReturns">Returns</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Addresses">Addresses</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Settings">Settings</a></li>
+
+                                @if (User.IsInRole("Admin") || User.IsInRole("Dev"))
+                                {
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><h6 class="dropdown-header">Management</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Admin Panel</a></li>
+                                }
+                                @if (User.IsInRole("Dev"))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="DevChanges" asp-action="Index">Dev Panel</a></li>
+                                }
+
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                       onclick="document.getElementById('logoutForm').submit(); return false;">
+                                        Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        @* Hidden form posted by the Logout link above *@
+                        <form id="logoutForm" asp-controller="Login" asp-action="Logout" method="post" class="d-none">
+                            @Html.AntiForgeryToken()
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="icon-link" asp-controller="Login" asp-action="Index">
+                            <i class="fa-regular fa-user" aria-hidden="true"></i>
+                            <span>Login / Register</span>
+                        </a>
+                    }
+
+                    <a class="icon-link wishlist-link" asp-controller="Wishlist" asp-action="Index" aria-label="Wishlist">
+                        <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                        <span class="wishlist-count">(0)</span>
+                    </a>
+
+                    <a class="icon-link cart-link" asp-controller="Cart" asp-action="Index" aria-label="Cart">
+                        <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+                        <span class="cart-count">(0)</span>
+                    </a>
+                </div>
+            </div>
+
+            <script>
+                // Navigation Functions
+                   function FindAStore() {
+                       window.location.href = '@Url.Action("Index", "FindAStore")';
+                   }
+
+                   function OrderTracking() {
+                       window.location.href = '@Url.Action("Index", "OrderTracking")';
+                   }
+
+                   function ContactUs() {
+                       window.location.href = '@Url.Action("Index", "ContactUs")';
+                   }
+
+                   function HomePage() {
+                       window.location.href = '@Url.Action("Index", "Home")';
+                   }
+
+                   function Login() {
+                       window.location.href = '@Url.Action("Index", "Login")';
+                   }
+
+                   function AboutPage() {
+                       window.location.href = '@Url.Action("About", "Home")';
+                   }
+
+                   function TermsPage() {
+                       window.location.href = '@Url.Action("Index", "Terms")';
+                   }
+
+                   function ReturnsPage() {
+                       window.location.href = '@Url.Action("Index", "Returns")';
+                   }
+
+                   function PrivacyPage() {
+                       window.location.href = '@Url.Action("Index", "Privacy")';
+                   }
+            </script>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- FOOTER (UNCHANGED) -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>GET IN TOUCH</h3>
+                <ul class="footer-contact-list">
+                    <li>138 Botha Avenue</li>
+                    <li>Lyttleton</li>
+                    <li>Centurion</li>
+                    <li>0014</li>
+                    <li>(012) 882-0844</li>
+                    <li>
+                        <a href="mailto:info@shumoshop.co.za">info@shumoshop.co.za</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>QUICK LINKS</h3>
+                <ul>
+                    <li><button class="footer-link-btn" type="button" onclick="HomePage()">Home</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="AboutPage()">About Us</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="ContactUs()">Contact Us</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="PrivacyPage()">Privacy Policy</button></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>CUSTOMER</h3>
+                <ul>
+                    <li><button class="footer-link-btn" type="button" onclick="window.location.href='/Account'">My Account</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="OrderTracking()">Track Order</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="TermsPage()">Terms & Conditions</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="ReturnsPage()">Returns Policy</button></li>
+                </ul>
+            </div>
+
+            <div class="company-section">
+                <div class="footer-logo">
+                    <img src="~/images/ShumoShop-Logo.svg"
+                         alt="ShumoShop - Shop Smart, Save More"
+                         class="footer-logo-img" />
+                </div>
+                <div class="company-description">
+                    Your trusted online shopping destination for quality products and great deals
+                </div>
+                <div class="social-section">
+                    <h4>Follow us on:</h4>
+                    <div class="social-icons">
+                        <a href="https://facebook.com/shumoshop" target="_blank" class="social-icon facebook" aria-label="Facebook">f</a>
+                        <a href="https://youtube.com/shumoshop" target="_blank" class="social-icon youtube" aria-label="YouTube">▶</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                Copyright © @DateTime.Now.Year ShumoShop. All rights reserved.
+            </div>
+            <div class="footer-bottom-right">
+                <a href="#" class="go-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                    Go To Top ↑
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/27315818400" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="white">
+            <path d="M16 0C7.164 0 0 7.164 0 16c0 2.824.738 5.488 2.026 7.814L.036 31.672l8.128-2.014A15.93 15.93 0 0016 32c8.836 0 16-7.164 16-16S24.836 0 16 0zm0 29.36c-2.548 0-4.96-.71-7.014-1.942l-.502-.296-5.212 1.292 1.31-5.124-.324-.522A13.31 13.31 0 012.64 16c0-7.364 5.996-13.36 13.36-13.36 7.364 0 13.36 5.996 13.36 13.36 0 7.364-5.996 13.36-13.36 13.36zm7.324-9.988c-.4-.2-2.372-1.17-2.74-1.304-.368-.132-.636-.2-.904.2-.268.402-1.038 1.304-1.272 1.572-.234.268-.468.302-.868.1-.4-.2-1.69-.622-3.218-1.984-1.19-1.06-1.994-2.368-2.228-2.768-.234-.4-.024-.616.176-.816.18-.18.4-.468.6-.702.2-.234.268-.4.402-.668.134-.268.066-.502-.034-.702-.1-.2-.904-2.176-1.238-2.98-.326-.782-.658-.676-.904-.69-.234-.012-.502-.014-.77-.014s-.702.1-1.07.502c-.368.4-1.404 1.372-1.404 3.346s1.438 3.882 1.638 4.15c.2.268 2.824 4.312 6.842 6.048.956.414 1.702.66 2.284.846.96.304 1.834.26 2.524.158.77-.116 2.372-.97 2.706-1.906.334-.936.334-1.738.234-1.906-.1-.168-.368-.268-.768-.468z" />
+        </svg>
+    </a>
+
+    <!-- SCRIPTS -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/ui-controller.js" asp-append-version="true"></script>
+    <script src="~/js/category-navbar.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+    <script src="~/js/wishlist.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    <div id="globalOverlay" class="global-overlay" aria-hidden="true"></div>
+</body>
+</html>

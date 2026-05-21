@@ -1,0 +1,136 @@
+@model WebApplication1.Services.ProductCsvImportService.ImportResult
+@{
+    ViewData["Title"] = "Bulk Import — Preview";
+    var willInsert = Model.WillInsertCount;
+    var willSkip = Model.WillSkipDuplicateCount;
+    var invalid = Model.InvalidCount;
+}
+
+<link href="~/css/DevChanges.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fa-solid fa-file-csv"></i>
+                Import Preview
+            </h1>
+            <p class="text-muted mb-0">Review what will happen, then commit when ready.</p>
+        </div>
+        <a asp-action="BulkUpload" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Start over
+        </a>
+    </div>
+
+    @if (Model.HasFileErrors)
+    {
+        <div class="alert alert-danger">
+            <strong>File errors:</strong>
+            <ul class="mb-0">
+                @foreach (var err in Model.FileErrors)
+                {
+                    <li>@err</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Will insert</div>
+                    <div class="display-6 text-success fw-bold">@willInsert</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Duplicates skipped</div>
+                    <div class="display-6 text-warning fw-bold">@willSkip</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Invalid rows</div>
+                    <div class="display-6 text-danger fw-bold">@invalid</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (willInsert > 0)
+    {
+        <form asp-action="BulkUploadCommit" method="post" class="mb-4">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success btn-lg"
+                    onclick="return confirm('Insert @willInsert new product(s)? Duplicates and invalid rows will be skipped.');">
+                <i class="fa-solid fa-check"></i> Commit Import (@willInsert new product@(willInsert == 1 ? "" : "s"))
+            </button>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Nothing to insert. Fix the errors below or upload a different file.
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Line</th>
+                        <th>Status</th>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th class="text-end">Price</th>
+                        <th>Issues</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        string rowClass = row.Status switch
+                        {
+                            WebApplication1.Services.ProductCsvImportService.RowStatus.WillInsert => "",
+                            WebApplication1.Services.ProductCsvImportService.RowStatus.WillSkipDuplicate => "table-warning",
+                            _ => "table-danger"
+                        };
+                        string statusLabel = row.Status switch
+                        {
+                            WebApplication1.Services.ProductCsvImportService.RowStatus.WillInsert => "✅ Will insert",
+                            WebApplication1.Services.ProductCsvImportService.RowStatus.WillSkipDuplicate => "↩ Duplicate SKU — skipped",
+                            _ => "❌ Invalid"
+                        };
+
+                        <tr class="@rowClass">
+                            <td>@row.LineNumber</td>
+                            <td><small>@statusLabel</small></td>
+                            <td><code>@row.SKU</code></td>
+                            <td>@row.Name</td>
+                            <td>@row.CategoryName</td>
+                            <td class="text-end">@row.Price</td>
+                            <td>
+                                @if (row.Errors.Any())
+                                {
+                                    <ul class="small text-danger mb-0">
+                                        @foreach (var e in row.Errors)
+                                        {
+                                            <li>@e</li>
+                                        }
+                                    </ul>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

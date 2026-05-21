@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Payment Successful";
+    var order = ViewBag.Order as WebApplication1.Models.Order;
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-check-circle-fill text-success" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                        </svg>
+                    </div>
+
+                    <h2 class="text-success mb-3">Payment Successful!</h2>
+                    <p class="lead mb-4">@ViewBag.Message</p>
+
+                    @if (order != null)
+                    {
+                        <div class="bg-light p-4 rounded mb-4">
+                            <h5 class="mb-3">Order Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 text-start">
+                                    <p class="mb-2"><strong>Order Number:</strong></p>
+                                    <p class="mb-2"><strong>Order Date:</strong></p>
+                                    <p class="mb-2"><strong>Total Amount:</strong></p>
+                                    <p class="mb-2"><strong>Payment Status:</strong></p>
+                                </div>
+                                <div class="col-md-6 text-start">
+                                    <p class="mb-2">@order.OrderNumber</p>
+                                    <p class="mb-2">@order.OrderDate.ToString("dd MMM yyyy")</p>
+                                    <p class="mb-2"><strong>R @order.TotalAmount.ToString("N2")</strong></p>
+                                    <p class="mb-2"><span class="badge bg-success">@order.PaymentStatus</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            A confirmation email has been sent to <strong>@order.Email</strong>
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        <a href="@Url.Action("OrderConfirmation", "Order", new { orderNumber = order?.OrderNumber })"
+                           class="btn btn-primary btn-lg px-5">
+                            View Order Details
+                        </a>
+                        <a href="@Url.Action("Index", "Shop")" class="btn btn-outline-secondary btn-lg px-5">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+﻿@model WebApplication1.Models.ContactUs
+
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<link href="~/css/contact.css" rel="stylesheet" />
+
+<div class="contact-page">
+    <div class="contact-container">
+        <div class="contact-header">
+            <h1>Get In Touch</h1>
+            <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="success-message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div class="contact-content-full">
+            <div class="contact-form-wrapper">
+                <form asp-action="Index" method="post" class="contact-form">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label asp-for="Name">Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="John Doe" />
+                        <span asp-validation-for="Name" class="error-message"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email">Email</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="john@example.com" />
+                        <span asp-validation-for="Email" class="error-message"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Subject">Subject</label>
+                        <input asp-for="Subject" class="form-control" placeholder="How can we help you?" />
+                        <span asp-validation-for="Subject" class="error-message"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Message">Message</label>
+                        <textarea asp-for="Message" class="form-control" placeholder="Tell us more about your inquiry..." rows="5"></textarea>
+                        <span asp-validation-for="Message" class="error-message"></span>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>Send Message</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,183 @@
+﻿@model List<WebApplication1.Models.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <span>Orders</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fa-solid fa-box"></i> Order History</h1>
+        <p>View and track all your orders</p>
+    </div>
+
+    <!-- Order Stats -->
+    <div class="order-stats">
+        <div class="stat-item">
+            <i class="fa-solid fa-box"></i>
+            <div>
+                <h3>@Model.Count</h3>
+                <p>Total Orders</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-clock"></i>
+            <div>
+                <h3>@Model.Count(o => o.Status == "Pending" || o.Status == "Processing")</h3>
+                <p>Active Orders</p>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-check-circle"></i>
+            <div>
+                <h3>@Model.Count(o => o.Status == "Delivered")</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="orders-container">
+            @foreach (var order in Model)
+            {
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div class="order-header-left">
+                            <h3>
+                                <i class="fa-solid fa-hashtag"></i>
+                                Order @order.OrderNumber
+                            </h3>
+                            <p class="order-date">
+                                <i class="fa-solid fa-calendar"></i>
+                                @order.OrderDate.ToString("MMMM dd, yyyy")
+                            </p>
+                        </div>
+                        <div class="order-header-right">
+                            <span class="status-badge status-@order.Status.ToLower()">
+                                @if (order.Status == "Pending")
+                                {
+                                    <i class="fa-solid fa-clock"></i>
+                                }
+                                else if (order.Status == "Processing")
+                                {
+                                    <i class="fa-solid fa-gear"></i>
+                                }
+                                else if (order.Status == "Shipped")
+                                {
+                                    <i class="fa-solid fa-truck"></i>
+                                }
+                                else if (order.Status == "Delivered")
+                                {
+                                    <i class="fa-solid fa-check-circle"></i>
+                                }
+                                else if (order.Status == "Cancelled")
+                                {
+                                    <i class="fa-solid fa-times-circle"></i>
+                                }
+                                @order.Status
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="order-card-body">
+                        <div class="order-info-grid">
+                            <div class="info-item">
+                                <label><i class="fa-solid fa-dollar-sign"></i> Total Amount</label>
+                                <p class="order-total">R @order.TotalAmount.ToString("N2")</p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fa-solid fa-box"></i> Items</label>
+                                <p>@order.OrderItems.Count item(s)</p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fa-solid fa-credit-card"></i> Payment</label>
+                                <p>@(string.IsNullOrEmpty(order.PaymentMethod) ? "N/A" : order.PaymentMethod)</p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fa-solid fa-location-dot"></i> Shipping To</label>
+                                <p>@order.ShippingCity, @order.ShippingState</p>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(order.TrackingNumber))
+                        {
+                            <div class="tracking-info">
+                                <i class="fa-solid fa-truck"></i>
+                                <span>Tracking: <strong>@order.TrackingNumber</strong></span>
+                                @if (!string.IsNullOrEmpty(order.Carrier))
+                                {
+                                    <span class="carrier-badge">@order.Carrier</span>
+                                }
+                            </div>
+                        }
+
+                        @if (order.EstimatedDelivery.HasValue)
+                        {
+                            <div class="delivery-estimate">
+                                <i class="fa-solid fa-calendar-check"></i>
+                                <span>Estimated Delivery: <strong>@order.EstimatedDelivery.Value.ToString("MMMM dd, yyyy")</strong></span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="order-card-footer">
+                        <a asp-controller="Account" asp-action="OrderDetails" asp-route-id="@order.Id" class="btn-view-details">
+                            <i class="fa-solid fa-eye"></i>
+                            View Details
+                        </a>
+
+                        @if (order.Status == "Delivered")
+                        {
+                            <button class="btn-reorder" onclick="reorder(@order.Id)">
+                                <i class="fa-solid fa-rotate-right"></i>
+                                Reorder
+                            </button>
+                        }
+
+                        @if (!string.IsNullOrEmpty(order.TrackingLink))
+                        {
+                            <a href="@order.TrackingLink" target="_blank" class="btn-track">
+                                <i class="fa-solid fa-location-dot"></i>
+                                Track Order
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state-large">
+            <i class="fa-solid fa-box-open"></i>
+            <h2>No Orders Yet</h2>
+            <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+            <a asp-controller="Shop" asp-action="Index" class="btn-start-shopping">
+                <i class="fa-solid fa-shopping-bag"></i>
+                Start Shopping
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function reorder(orderId) {
+            if (confirm('Add all items from this order to your cart?')) {
+                // TODO: Implement reorder functionality
+                alert('Reorder functionality coming soon!');
+            }
+        }
+    </script>
+}

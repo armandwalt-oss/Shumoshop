@@ -1,0 +1,137 @@
+﻿@model IEnumerable<WebApplication1.Models.WishlistItem>
+
+@{
+    ViewData["Title"] = "My Wishlist";
+}
+
+<link href="~/css/wishlist.css" rel="stylesheet" />
+
+<div class="wishlist-page">
+    <div class="wishlist-container">
+        <!-- Page Header -->
+        <div class="wishlist-header">
+            <h1><i class="fa-solid fa-heart"></i> My Wishlist</h1>
+            <p>@Model.Count() item(s) saved</p>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="wishlist-grid">
+                @foreach (var item in Model)
+                {
+                    <div class="wishlist-card">
+                        <!-- Remove Button -->
+                        <button class="btn-remove-wishlist"
+                                onclick="removeFromWishlist(@item.ProductId)"
+                                title="Remove from wishlist">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+
+                        <!-- Product Image -->
+                        <a asp-controller="Shop" asp-action="Product" asp-route-id="@item.ProductId" class="wishlist-product-link">
+                            <div class="wishlist-product-image">
+                                @if (!string.IsNullOrEmpty(item.Product.ImageUrl))
+                                {
+                                    <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                                }
+                                else
+                                {
+                                    <div class="placeholder-image">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Product Info -->
+                            <div class="wishlist-product-info">
+                                <p class="wishlist-category">@item.Product.Category</p>
+                                <h3 class="wishlist-product-name">@item.Product.Name</h3>
+                                <p class="wishlist-sku">SKU: @item.Product.SKU</p>
+
+                                @if (item.Product.InStock)
+                                {
+                                    <span class="stock-badge in-stock">
+                                        <i class="fa-solid fa-check-circle"></i> In Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="stock-badge out-of-stock">
+                                        <i class="fa-solid fa-times-circle"></i> Out of Stock
+                                    </span>
+                                }
+
+                                <p class="wishlist-price">R @item.Product.Price.ToString("N2")</p>
+                                <p class="wishlist-added">Added: @item.AddedDate.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </a>
+
+                        <!-- Action Buttons -->
+                        <div class="wishlist-actions">
+                            @if (item.Product.InStock && item.Product.StockQuantity > 0)
+                            {
+                                <button class="btn-add-to-cart-wishlist"
+                                        onclick="event.preventDefault(); addToCart(@item.ProductId, 1)">
+                                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-out-of-stock" disabled>
+                                    <i class="fa-solid fa-ban"></i> Out of Stock
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Wishlist Actions -->
+            <div class="wishlist-bottom-actions">
+                <a asp-controller="Shop" asp-action="Index" class="btn-continue-shopping">
+                    <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Empty Wishlist -->
+            <div class="empty-wishlist">
+                <div class="empty-icon">
+                    <i class="fa-regular fa-heart"></i>
+                </div>
+                <h2>Your Wishlist is Empty</h2>
+                <p>Save items you love so you don't lose sight of them!</p>
+                <a asp-controller="Shop" asp-action="Index" class="btn-shop-now">
+                    <i class="fa-solid fa-shopping-bag"></i> Start Shopping
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Remove from wishlist
+        function removeFromWishlist(productId) {
+            if (!confirm('Remove this item from your wishlist?')) return;
+
+            $.ajax({
+                url: '/Wishlist/RemoveFromWishlist',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (response) {
+                    if (response.success) {
+                        // Reload page to show updated wishlist
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error removing item from wishlist');
+                }
+            });
+        }
+    </script>
+}

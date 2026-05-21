@@ -1,0 +1,61 @@
+﻿@model IEnumerable<WebApplication1.Models.Category>
+
+<div class="flyout-inner">
+    <ul class="categories-vertical" role="menu" aria-label="Departments">
+        <!-- All Products Link -->
+        <li class="category-item-vertical all-products-item" role="none">
+            <a class="category-link all-products-link"
+               role="menuitem"
+               asp-controller="Shop"
+               asp-action="Index">
+                <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                <span class="category-name">All Products</span>
+            </a>
+        </li>
+
+        @foreach (var category in Model ?? Enumerable.Empty<WebApplication1.Models.Category>())
+        {
+            var hasSubs = category.SubCategories != null && category.SubCategories.Any();
+            <li class="category-item-vertical @(hasSubs ? "has-subs" : "")" role="none">
+                <a class="category-link"
+                   role="menuitem"
+                   asp-controller="Shop"
+                   asp-action="Index"
+                   asp-route-category="@category.Name">
+                    <span class="category-name">@category.Name</span>
+                </a>
+
+                @if (hasSubs)
+                {
+                    <button type="button" class="arrow-down" aria-label="Toggle subcategories" aria-expanded="false">
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="subcategory-panel" role="group" aria-label="@category.Name subcategories">
+                        <a class="subcategory-link view-all"
+                           asp-controller="Shop"
+                           asp-action="Index"
+                           asp-route-category="@category.Name">
+                            View all @category.Name
+                        </a>
+
+                        <ul class="subcategory-list">
+                            @foreach (var sub in category.SubCategories.OrderBy(sc => sc.DisplayOrder).ThenBy(sc => sc.Name))
+                            {
+                                <li>
+                                    <a class="subcategory-link"
+                                       asp-controller="Shop"
+                                       asp-action="Index"
+                                       asp-route-category="@category.Name"
+                                       asp-route-subCategory="@sub.Name">
+                                        @sub.Name
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</div>

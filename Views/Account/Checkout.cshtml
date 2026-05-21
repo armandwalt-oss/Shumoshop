@@ -1,0 +1,386 @@
+﻿@model WebApplication1.Controllers.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Checkout";
+    var cart = ViewBag.Cart as WebApplication1.Models.Cart;
+    var savedAddresses = ViewBag.SavedAddresses as List<WebApplication1.Models.Address>;
+}
+
+<link href="~/css/checkout.css" rel="stylesheet" />
+
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1><i class="fa-solid fa-credit-card"></i> Checkout</h1>
+        <p>Complete your order</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="checkout-progress">
+        <div class="progress-step completed">
+            <div class="step-icon"><i class="fa-solid fa-shopping-cart"></i></div>
+            <span>Cart</span>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">
+            <div class="step-icon"><i class="fa-solid fa-truck"></i></div>
+            <span>Shipping</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+            <div class="step-icon"><i class="fa-solid fa-check-circle"></i></div>
+            <span>Confirmation</span>
+        </div>
+    </div>
+
+    <form asp-action="ProcessCheckout" method="post" id="checkoutForm">
+        <div class="checkout-content">
+            <!-- Left Column - Forms -->
+            <div class="checkout-forms">
+
+                <!-- Contact Information -->
+                <div class="form-section">
+                    <h2><i class="fa-solid fa-user"></i> Contact Information</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="CustomerName">Name *</label>
+                            <input asp-for="CustomerName" class="form-control" placeholder="John" required />
+                            <span asp-validation-for="CustomerName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="CustomerSurname">Surname *</label>
+                            <input asp-for="CustomerSurname" class="form-control" placeholder="Doe" required />
+                            <span asp-validation-for="CustomerSurname" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Email">Email Address *</label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="john@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber">Phone Number *</label>
+                            <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="0821234567" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saved Addresses (if any) -->
+                @if (savedAddresses != null && savedAddresses.Any())
+                {
+                    <div class="form-section">
+                        <h2><i class="fa-solid fa-bookmark"></i> Saved Addresses</h2>
+                        <div class="saved-addresses">
+                            @foreach (var address in savedAddresses)
+                            {
+                                <div class="saved-address-card" onclick="selectSavedAddress(@address.Id, '@address.StreetAddress', '@address.City', '@address.State', '@address.PostalCode', '@address.PhoneNumber')">
+                                    <div class="address-header">
+                                        <strong>@address.FullName</strong>
+                                        @if (!string.IsNullOrEmpty(address.Label))
+                                        {
+                                            <span class="badge-label">@address.Label</span>
+                                        }
+                                        @if (address.IsDefaultShipping)
+                                        {
+                                            <span class="badge-default">Default</span>
+                                        }
+                                    </div>
+                                    <p>@address.StreetAddress</p>
+                                    @if (!string.IsNullOrEmpty(address.ApartmentUnit))
+                                    {
+                                        <p>@address.ApartmentUnit</p>
+                                    }
+                                    <p>@address.City, @address.State @address.PostalCode</p>
+                                    @if (!string.IsNullOrEmpty(address.PhoneNumber))
+                                    {
+                                        <p>@address.PhoneNumber</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(address.DeliveryInstructions))
+                                    {
+                                        <p class="delivery-note"><i class="fa-solid fa-note-sticky"></i> @address.DeliveryInstructions</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Shipping Address -->
+                <div class="form-section">
+                    <h2><i class="fa-solid fa-truck"></i> Shipping Address</h2>
+
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label asp-for="ShippingAddress">Street Address *</label>
+                            <input asp-for="ShippingAddress" class="form-control" placeholder="123 Main Street" />
+                            <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="ShippingCity">City *</label>
+                            <input asp-for="ShippingCity" class="form-control" placeholder="Johannesburg" />
+                            <span asp-validation-for="ShippingCity" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ShippingState">Province *</label>
+                            <select asp-for="ShippingState" class="form-control">
+                                <option value="">Select Province</option>
+                                <option value="Gauteng">Gauteng</option>
+                                <option value="Western Cape">Western Cape</option>
+                                <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                <option value="Eastern Cape">Eastern Cape</option>
+                                <option value="Free State">Free State</option>
+                                <option value="Limpopo">Limpopo</option>
+                                <option value="Mpumalanga">Mpumalanga</option>
+                                <option value="Northern Cape">Northern Cape</option>
+                                <option value="North West">North West</option>
+                            </select>
+                            <span asp-validation-for="ShippingState" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="ShippingPostalCode">Postal Code *</label>
+                            <input asp-for="ShippingPostalCode" class="form-control" placeholder="2000" />
+                            <span asp-validation-for="ShippingPostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-checkbox">
+                        <input asp-for="SaveAddress" type="checkbox" id="saveAddress" />
+                        <label for="saveAddress">Save this address for future orders</label>
+                    </div>
+                </div>
+
+                <!-- Billing Address -->
+                <div class="form-section">
+                    <h2><i class="fa-solid fa-file-invoice-dollar"></i> Billing Address</h2>
+
+                    <div class="form-checkbox">
+                        <input asp-for="SameAsShipping" type="checkbox" id="sameAsShipping" checked onchange="toggleBillingAddress()" />
+                        <label for="sameAsShipping">Same as shipping address</label>
+                    </div>
+
+                    <div id="billingAddressFields" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label asp-for="BillingAddress">Street Address</label>
+                                <input asp-for="BillingAddress" class="form-control" placeholder="123 Main Street" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="BillingCity">City</label>
+                                <input asp-for="BillingCity" class="form-control" placeholder="Johannesburg" />
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="BillingState">Province</label>
+                                <select asp-for="BillingState" class="form-control">
+                                    <option value="">Select Province</option>
+                                    <option value="Gauteng">Gauteng</option>
+                                    <option value="Western Cape">Western Cape</option>
+                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                    <option value="Eastern Cape">Eastern Cape</option>
+                                    <option value="Free State">Free State</option>
+                                    <option value="Limpopo">Limpopo</option>
+                                    <option value="Mpumalanga">Mpumalanga</option>
+                                    <option value="Northern Cape">Northern Cape</option>
+                                    <option value="North West">North West</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="BillingPostalCode">Postal Code</label>
+                                <input asp-for="BillingPostalCode" class="form-control" placeholder="2000" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Notes -->
+                <div class="form-section">
+                    <h2><i class="fa-solid fa-note-sticky"></i> Order Notes (Optional)</h2>
+                    <div class="form-group full-width">
+                        <textarea asp-for="OrderNotes" class="form-control" rows="4" placeholder="Any special delivery instructions?"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Order Summary -->
+            <div class="order-summary-sidebar">
+                <div class="summary-card">
+                    <h2>Order Summary</h2>
+
+                    <!-- Cart Items -->
+                    <div class="summary-items">
+                        @if (cart != null && cart.CartItems.Any())
+                        {
+                            @foreach (var item in cart.CartItems)
+                            {
+                                <div class="summary-item">
+                                    <div class="item-image">
+                                        @if (!string.IsNullOrEmpty(item.Product.ImageUrl))
+                                        {
+                                            <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="placeholder-icon">
+                                                <i class="fa-solid fa-image"></i>
+                                            </div>
+                                        }
+                                        <span class="item-qty">@item.Quantity</span>
+                                    </div>
+                                    <div class="item-details">
+                                        <h4>@item.Product.Name</h4>
+                                        <p class="item-price">R @item.TotalPrice.ToString("N2")</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <!-- Pricing Breakdown -->
+                    <div class="summary-pricing">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="subtotal">R @cart?.SubTotal.ToString("N2")</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Shipping</span>
+                            <span id="shipping">
+                                @if (cart?.SubTotal >= 500)
+                                {
+                                    <span class="free-shipping">FREE</span>
+                                }
+                                else
+                                {
+                                    <span>R 75.00</span>
+                                }
+                            </span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Tax (VAT 15%)</span>
+                            <span id="tax">R @(((cart?.SubTotal ?? 0) * 0.15m).ToString("N2"))</span>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row summary-total">
+                            <span>Total</span>
+                            <span id="total">
+                                @{
+                                    var shippingCost = (cart?.SubTotal >= 500) ? 0 : 75.00m;
+                                    var totalAmount = (cart?.SubTotal ?? 0) + shippingCost + ((cart?.SubTotal ?? 0) * 0.15m);
+                                }
+                                R @totalAmount.ToString("N2")
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Notice -->
+                    <div class="payment-notice">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <p><strong>Payment Processing:</strong> Your order will be confirmed and payment instructions will be sent to your email.</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-place-order">
+                        <i class="fa-solid fa-check"></i> Place Order
+                    </button>
+
+                    <a asp-controller="Cart" asp-action="Index" class="btn-back-to-cart">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Cart
+                    </a>
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="trust-badges">
+                    <div class="trust-item">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Secure Checkout</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <span>Fast Delivery</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Easy Returns</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Toggle billing address fields
+        function toggleBillingAddress() {
+            var checkbox = document.getElementById('sameAsShipping');
+            var billingFields = document.getElementById('billingAddressFields');
+
+            if (checkbox.checked) {
+                billingFields.style.display = 'none';
+            } else {
+                billingFields.style.display = 'block';
+            }
+        }
+
+        // Select saved address
+        function selectSavedAddress(id, address, city, state, postalCode, phoneNumber) {
+            document.getElementById('ShippingAddress').value = address;
+            document.getElementById('ShippingCity').value = city;
+            document.getElementById('ShippingState').value = state;
+            document.getElementById('ShippingPostalCode').value = postalCode;
+            if (phoneNumber) {
+                document.getElementById('PhoneNumber').value = phoneNumber;
+            }
+
+            // Highlight selected address
+            document.querySelectorAll('.saved-address-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Form validation
+        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+            var requiredFields = document.querySelectorAll('[required]');
+            var isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('error');
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+            }
+        });
+    </script>
+}

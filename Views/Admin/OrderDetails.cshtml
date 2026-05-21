@@ -1,0 +1,487 @@
+﻿@model WebApplication1.Models.Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin/Orders" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Orders
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-file-invoice"></i>
+            Order #@Model.OrderNumber
+        </h1>
+        <p>Order placed on @Model.OrderDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</p>
+    </div>
+
+    <div class="details-grid">
+        <!-- Order Status & Actions -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-info-circle"></i> Order Status</h2>
+            
+            <div class="current-status">
+                <span class="status-badge status-@Model.Status.ToLower()" style="font-size: 1.2rem; padding: 12px 24px;">
+                    @Model.Status
+                </span>
+            </div>
+
+            <form asp-action="UpdateOrderStatus" method="post" style="margin-top: 30px;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                
+                <div class="form-group">
+                    <label for="status"><strong>Update Order Status:</strong></label>
+                    <select name="status" class="form-control" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="Pending" selected="@(Model.Status == "Pending")">Pending</option>
+                        <option value="Processing" selected="@(Model.Status == "Processing")">Processing</option>
+                        <option value="Shipped" selected="@(Model.Status == "Shipped")">Shipped</option>
+                        <option value="Delivered" selected="@(Model.Status == "Delivered")">Delivered</option>
+                        <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="carrier"><strong>Courier Company:</strong></label>
+                    <select name="carrier" id="carrierSelect" class="form-control">
+                        <option value="">-- Select Carrier --</option>
+                        @{
+                            var carriers = new[] { "The Courier Guy", "DHL", "Aramex", "FedEx", "RAM", "Dawn Wing" };
+                            foreach (var carrier in carriers)
+                            {
+                                if (Model.Carrier == carrier)
+                                {
+                                    <option value="@carrier" selected>@carrier</option>
+                                }
+                                else
+                                {
+                                    <option value="@carrier">@carrier</option>
+                                }
+                            }
+                            // Custom option separately
+                            if (Model.Carrier == "Custom")
+                            {
+                                <option value="Custom" selected>Custom / Other</option>
+                            }
+                            else
+                            {
+                                <option value="Custom">Custom / Other</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="trackingNumber">Tracking Number:</label>
+                    <input type="text" name="trackingNumber" id="trackingNumber" class="form-control" 
+                           value="@Model.TrackingNumber" placeholder="Enter tracking number" />
+                    <small class="form-text">For known carriers, tracking URL will be auto-generated</small>
+                </div>
+
+                <div class="form-group" id="customLinkGroup" style="display: none;">
+                    <label for="trackingLink">Custom Tracking Link:</label>
+                    <input type="text" name="trackingLink" id="trackingLink" class="form-control" 
+                           value="@Model.TrackingLink" placeholder="Paste full tracking URL here" />
+                    <small class="form-text">Only required if you selected "Custom / Other"</small>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-save"></i>
+                    Update Order Status
+                </button>
+            </form>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-user"></i> Customer Information</h2>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">@Model.User?.Name</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@Model.User?.Email</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">@(Model.User?.PhoneNumber ?? "N/A")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-truck"></i> Shipping Address</h2>
+
+            <div class="address-display">
+                <p><strong>@Model.CustomerName</strong></p>
+                <p>@Model.ShippingAddress</p>
+                <p>@Model.ShippingCity, @Model.ShippingState @Model.ShippingPostalCode</p>
+                <p><strong>Phone:</strong> @Model.PhoneNumber</p>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-credit-card"></i> Payment Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Payment Method</div>
+                    <div class="info-value">@Model.PaymentMethod</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Payment Status</div>
+                    <div class="info-value">@Model.PaymentStatus</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tracking Information -->
+        @if (!string.IsNullOrEmpty(Model.TrackingNumber) || !string.IsNullOrEmpty(Model.Carrier))
+        {
+            <div class="detail-section">
+                <h2><i class="fa-solid fa-truck-fast"></i> Tracking Information</h2>
+
+                <div class="tracking-info-card-admin">
+                    @if (!string.IsNullOrEmpty(Model.Carrier))
+                    {
+                        <div class="tracking-detail">
+                            <span class="tracking-label">
+                                <i class="fa-solid fa-building"></i>
+                                Courier Company:
+                            </span>
+                            <span class="tracking-value">@Model.Carrier</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                    {
+                        <div class="tracking-detail">
+                            <span class="tracking-label">
+                                <i class="fa-solid fa-hashtag"></i>
+                                Tracking Number:
+                            </span>
+                            <span class="tracking-value">@Model.TrackingNumber</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.TrackingLink))
+                    {
+                        <div class="tracking-button-container">
+                            <a href="@Model.TrackingLink" target="_blank" class="btn-track-package">
+                                <i class="fa-solid fa-location-dot"></i>
+                                Track Package
+                            </a>
+                            <small class="tracking-link-hint">Opens in new window</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Order Items -->
+        <div class="detail-section" style="grid-column: 1 / -1;">
+            <h2><i class="fa-solid fa-shopping-cart"></i> Order Items</h2>
+            
+            <div class="order-items-list">
+                @if (Model.OrderItems != null && Model.OrderItems.Any())
+                {
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <div class="order-item-row">
+                            <img src="@(item.ImageUrl ?? "/images/no-image.jpg")" alt="@item.ProductName" class="item-thumb" />
+                            <div class="item-info-admin">
+                                <h4>@item.ProductName</h4>
+                                <p>SKU: @item.ProductSKU</p>
+                            </div>
+                            <div class="item-quantity">
+                                <span class="label">Quantity</span>
+                                <span class="value">@item.Quantity</span>
+                            </div>
+                            <div class="item-price">
+                                <span class="label">Unit Price</span>
+                                <span class="value">R @item.UnitPrice.ToString("N2")</span>
+                            </div>
+                            <div class="item-total">
+                                <span class="label">Total</span>
+                                <span class="value">R @item.TotalPrice.ToString("N2")</span>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary-admin">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>R @Model.Subtotal.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span>R @Model.ShippingCost.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax:</span>
+                    <span>R @Model.Tax.ToString("N2")</span>
+                </div>
+                <div class="summary-row total">
+                    <span><strong>Total:</strong></span>
+                    <span><strong>R @Model.TotalAmount.ToString("N2")</strong></span>
+                </div>
+            </div>
+        </div>
+
+        @{
+            // Pull TCG shipment ID out of Order.Notes if we previously booked
+            // a collection — CourierGuyController.BookCollection stamps it as
+            // "[TCG Shipment ID: 12345]" at the top of Notes.
+            int? tcgShipmentId = null;
+            if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(
+                    Model.Notes, @"\[TCG Shipment ID:\s*(\d+)\]");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var id))
+                {
+                    tcgShipmentId = id;
+                }
+            }
+        }
+
+        <!-- The Courier Guy controls -->
+        <div class="detail-section" style="grid-column: 1 / -1;" id="tcgPanel"
+             data-order-id="@Model.Id"
+             data-tracking-ref="@(Model.TrackingNumber ?? "")"
+             data-shipment-id="@(tcgShipmentId?.ToString() ?? "")">
+            <h2><i class="fa-solid fa-truck-fast"></i> The Courier Guy</h2>
+
+            <div class="tcg-controls" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .75rem; margin-bottom: 1rem;">
+                <label style="font-size:.85rem;">
+                    Length (cm)
+                    <input type="number" id="tcgLength" value="30" min="1" step="1" class="form-control" />
+                </label>
+                <label style="font-size:.85rem;">
+                    Width (cm)
+                    <input type="number" id="tcgWidth" value="20" min="1" step="1" class="form-control" />
+                </label>
+                <label style="font-size:.85rem;">
+                    Height (cm)
+                    <input type="number" id="tcgHeight" value="10" min="1" step="1" class="form-control" />
+                </label>
+                <label style="font-size:.85rem;">
+                    Weight (kg)
+                    <input type="number" id="tcgWeight" value="1" min="0.1" step="0.1" class="form-control" />
+                </label>
+                <label style="font-size:.85rem;">
+                    Service level
+                    <select id="tcgServiceLevel" class="form-control">
+                        <option value="ECO" selected>Economy</option>
+                        <option value="ONX">Overnight Express</option>
+                        <option value="OVN">Overnight</option>
+                        <option value="SDX">Same Day Express</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="tcg-buttons" style="display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem;">
+                <button type="button" id="tcgGetRates" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-calculator"></i> Preview Rates
+                </button>
+                <button type="button" id="tcgBook" class="btn btn-primary">
+                    <i class="fa-solid fa-box-archive"></i> Book Collection
+                </button>
+                <button type="button" id="tcgTrack" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-location-dot"></i> Refresh Tracking
+                </button>
+                <button type="button" id="tcgWaybill" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-file-pdf"></i> Download Waybill
+                </button>
+                <button type="button" id="tcgCancel" class="btn btn-outline-danger">
+                    <i class="fa-solid fa-ban"></i> Cancel Shipment
+                </button>
+            </div>
+
+            <div id="tcgResult" class="tcg-result"
+                 style="background:#f8f9fa; border:1px solid #e2e8f0; border-radius:6px; padding:.75rem; font-size:.9rem; min-height:2.5rem; white-space:pre-wrap; font-family:'Segoe UI', sans-serif;">
+                Ready. Fill in parcel dimensions above and pick an action.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide custom link field based on carrier selection
+    document.getElementById('carrierSelect').addEventListener('change', function() {
+        const customLinkGroup = document.getElementById('customLinkGroup');
+        if (this.value === 'Custom') {
+            customLinkGroup.style.display = 'block';
+        } else {
+            customLinkGroup.style.display = 'none';
+        }
+    });
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        const carrierSelect = document.getElementById('carrierSelect');
+        const customLinkGroup = document.getElementById('customLinkGroup');
+        if (carrierSelect.value === 'Custom') {
+            customLinkGroup.style.display = 'block';
+        }
+    });
+
+    // ─── The Courier Guy controls ──────────────────────────────────────
+    (function () {
+        const panel = document.getElementById('tcgPanel');
+        if (!panel) return;
+
+        const orderId      = panel.dataset.orderId;
+        const trackingRef  = panel.dataset.trackingRef || '';
+        const shipmentId   = panel.dataset.shipmentId || '';
+
+        const resultBox = document.getElementById('tcgResult');
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        function dims() {
+            return {
+                orderId: parseInt(orderId, 10),
+                lengthCm: parseFloat(document.getElementById('tcgLength').value) || 0,
+                widthCm:  parseFloat(document.getElementById('tcgWidth').value)  || 0,
+                heightCm: parseFloat(document.getElementById('tcgHeight').value) || 0,
+                weightKg: parseFloat(document.getElementById('tcgWeight').value) || 0,
+                serviceLevelCode: document.getElementById('tcgServiceLevel').value
+            };
+        }
+
+        function show(text) { resultBox.textContent = text; }
+        function busy(text) { resultBox.textContent = '… ' + text; }
+
+        async function postJson(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(body)
+            });
+            return res.json();
+        }
+
+        // Preview rates
+        document.getElementById('tcgGetRates').addEventListener('click', async () => {
+            busy('Fetching rates from The Courier Guy…');
+            try {
+                const data = await postJson('/CourierGuy/GetRates', dims());
+                if (!data.success) { show('❌ ' + (data.message || 'Unknown error')); return; }
+                if (!data.rates || data.rates.length === 0) { show('No rates returned.'); return; }
+                let out = 'Available rates:\n';
+                data.rates.forEach(r => {
+                    out += `  • ${r.serviceLevelName} (${r.serviceLevelCode}): R ${r.rate}`;
+                    if (r.deliveryTo) out += `  — by ${r.deliveryTo}`;
+                    out += '\n';
+                });
+                show(out);
+            } catch (ex) {
+                show('❌ Request failed: ' + ex.message);
+            }
+        });
+
+        // Book collection
+        document.getElementById('tcgBook').addEventListener('click', async () => {
+            if (!confirm('Book a Courier Guy collection for this order?')) return;
+            busy('Booking collection…');
+            try {
+                const data = await postJson('/CourierGuy/BookCollection', dims());
+                if (!data.success) { show('❌ ' + (data.message || 'Unknown error')); return; }
+                let out = '✅ ' + data.message + '\n';
+                if (data.serviceLevelName) out += `Service: ${data.serviceLevelName}\n`;
+                if (data.rate)             out += `Rate: R ${data.rate}\n`;
+                if (data.estimatedDeliveryFrom) out += `Est. delivery: ${data.estimatedDeliveryFrom} – ${data.estimatedDeliveryTo}\n`;
+                out += '\nReload the page to see the updated tracking number on the order.';
+                show(out);
+                // Stash for subsequent tracking / waybill on this page load
+                panel.dataset.trackingRef = data.trackingReference || '';
+                panel.dataset.shipmentId  = data.shipmentId        || '';
+            } catch (ex) {
+                show('❌ Request failed: ' + ex.message);
+            }
+        });
+
+        // Refresh tracking
+        document.getElementById('tcgTrack').addEventListener('click', async () => {
+            const ref = panel.dataset.trackingRef;
+            if (!ref) { show('No tracking reference on this order yet. Book a collection first.'); return; }
+            busy('Fetching tracking from The Courier Guy…');
+            try {
+                const res = await fetch('/CourierGuy/Track?trackingReference=' + encodeURIComponent(ref));
+                const data = await res.json();
+                if (!data.success) { show('❌ ' + (data.message || 'Unknown error')); return; }
+                let out = `Status: ${data.statusLabel}\n`;
+                if (data.estimatedDeliveryFrom) out += `Est. delivery: ${data.estimatedDeliveryFrom} – ${data.estimatedDeliveryTo}\n`;
+                out += '\nEvents:\n';
+                if (!data.events || data.events.length === 0) {
+                    out += '  (no events yet)';
+                } else {
+                    data.events.forEach(e => {
+                        out += `  • [${e.date}] ${e.label}`;
+                        if (e.location) out += ` — ${e.location}`;
+                        if (e.message)  out += `\n      ${e.message}`;
+                        out += '\n';
+                    });
+                }
+                show(out);
+            } catch (ex) {
+                show('❌ Request failed: ' + ex.message);
+            }
+        });
+
+        // Download waybill
+        document.getElementById('tcgWaybill').addEventListener('click', () => {
+            const sid = panel.dataset.shipmentId;
+            if (!sid) { show('No shipment ID on this order yet. Book a collection first.'); return; }
+            window.open('/CourierGuy/Waybill?shipmentId=' + encodeURIComponent(sid), '_blank');
+        });
+
+        // Cancel shipment
+        document.getElementById('tcgCancel').addEventListener('click', async () => {
+            const sid = panel.dataset.shipmentId;
+            if (!sid) { show('No shipment ID on this order yet.'); return; }
+            if (!confirm('Cancel this Courier Guy shipment? The tracking number will be cleared from the order.')) return;
+            busy('Cancelling shipment…');
+            try {
+                const data = await postJson('/CourierGuy/CancelShipment', {
+                    orderId: parseInt(orderId, 10),
+                    shipmentId: parseInt(sid, 10)
+                });
+                if (!data.success) { show('❌ ' + (data.message || 'Unknown error')); return; }
+                show('✅ ' + data.message + '\n\nReload the page to confirm.');
+                panel.dataset.trackingRef = '';
+                panel.dataset.shipmentId  = '';
+            } catch (ex) {
+                show('❌ Request failed: ' + ex.message);
+            }
+        });
+    })();
+</script>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelector('.success-notification').style.display = 'none';
+        }, 5000);
+    </script>
+}

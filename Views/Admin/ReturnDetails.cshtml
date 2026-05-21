@@ -1,0 +1,339 @@
+﻿@model WebApplication1.Models.ReturnRequest
+@{
+    ViewData["Title"] = "Return Request Details";
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin/Returns" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Returns
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-clipboard-list"></i>
+            Return Request #@Model.Id
+        </h1>
+        <p>Requested on @Model.RequestDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</p>
+    </div>
+
+    <div class="details-grid">
+        <!-- Current Status & Quick Actions -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-traffic-light"></i> Status & Actions</h2>
+
+            <div class="current-status">
+                <span class="status-badge status-@Model.Status.ToLower()" style="font-size: 1.2rem; padding: 12px 24px;">
+                    @Model.Status
+                </span>
+            </div>
+
+            <!-- Pending Actions -->
+            @if (Model.Status == "Pending")
+            {
+                <div class="action-panel">
+                    <h4 style="margin: 25px 0 15px 0; color: #1e293b;">Approve or Reject Return:</h4>
+
+                    <!-- Approve Form -->
+                    <form asp-action="ApproveReturn" method="post" style="margin-bottom: 15px;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="form-group">
+                            <label>Admin Notes (Optional):</label>
+                            <textarea name="adminNotes" class="form-control" rows="3"
+                                  placeholder="Add notes about the approval..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-approve">
+                            <i class="fa-solid fa-check"></i>
+                            Approve Return
+                        </button>
+                    </form>
+
+                    <!-- Reject Form -->
+                    <form asp-action="RejectReturn" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="form-group">
+                            <label>Rejection Reason (Required):</label>
+                            <textarea name="adminNotes" class="form-control" rows="3" required
+                                  placeholder="Explain why this return is being rejected..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-reject">
+                            <i class="fa-solid fa-times"></i>
+                            Reject Return
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Approved Actions -->
+            @if (Model.Status == "Approved")
+            {
+                <div class="action-panel">
+                    <h4 style="margin: 25px 0 15px 0; color: #1e293b;">Mark as Received:</h4>
+                    <p style="color: #64748b; margin-bottom: 15px;">
+                        Once the customer ships the item back and you receive it, mark it as received.
+                    </p>
+
+                    <form asp-action="MarkReturnReceived" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fa-solid fa-box"></i>
+                            Mark as Received
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Received Actions -->
+            @if (Model.Status == "Received")
+            {
+                <div class="action-panel">
+                    <h4 style="margin: 25px 0 15px 0; color: #1e293b;">Issue Refund:</h4>
+                    <p style="color: #64748b; margin-bottom: 15px;">
+                        Refund amount: <strong>R @Model.RefundAmount.ToString("N2")</strong>
+                    </p>
+
+                    <form asp-action="IssueRefund" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <button type="submit" class="btn-success">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            Issue Refund
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Return Authorization Number -->
+            @if (!string.IsNullOrEmpty(Model.ReturnAuthorizationNumber))
+            {
+                <div class="ran-display">
+                    <label>Return Authorization Number:</label>
+                    <div class="ran-code">@Model.ReturnAuthorizationNumber</div>
+                </div>
+            }
+        </div>
+
+        <!-- Customer Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-user"></i> Customer Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">@Model.User?.Name</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@Model.User?.Email</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">@(Model.User?.PhoneNumber ?? "N/A")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-receipt"></i> Original Order</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Order Number</div>
+                    <div class="info-value">
+                        <a href="/Admin/OrderDetails/@Model.Order?.Id" style="color: #3b82f6; text-decoration: none;">
+                            #@Model.Order?.OrderNumber
+                        </a>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Order Date</div>
+                    <div class="info-value">@Model.Order?.OrderDate.ToString("MMM dd, yyyy")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Order Total</div>
+                    <div class="info-value">R @Model.Order?.TotalAmount.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Being Returned -->
+        <div class="detail-section" style="grid-column: 1 / -1;">
+            <h2><i class="fa-solid fa-box-open"></i> Product Being Returned</h2>
+
+            <div class="product-display">
+                <img src="@(Model.OrderItem?.ImageUrl ?? "/images/no-image.jpg")"
+                     alt="@Model.OrderItem?.ProductName"
+                     class="product-image" />
+                <div class="product-info">
+                    <h3>@Model.OrderItem?.ProductName</h3>
+                    <p><strong>SKU:</strong> @Model.OrderItem?.ProductSKU</p>
+                    <p><strong>Quantity:</strong> @Model.OrderItem?.Quantity</p>
+                    <p><strong>Unit Price:</strong> R @Model.OrderItem?.UnitPrice.ToString("N2")</p>
+                    <p><strong>Total Price:</strong> R @Model.OrderItem?.TotalPrice.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Reason -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-comment-dots"></i> Return Reason</h2>
+
+            <div class="reason-box">
+                <h4>@Model.ReturnReason</h4>
+                @if (!string.IsNullOrEmpty(Model.DetailedReason))
+                {
+                    <p>@Model.DetailedReason</p>
+                }
+                else
+                {
+                    <p style="color: #94a3b8; font-style: italic;">No additional details provided</p>
+                }
+            </div>
+        </div>
+
+        <!-- Refund Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-money-bill"></i> Refund Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Refund Amount</div>
+                    <div class="info-value">R @Model.RefundAmount.ToString("N2")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Refund Status</div>
+                    <div class="info-value">
+                        @if (Model.IsRefundIssued)
+                        {
+                            <span style="color: #22c55e;">✓ Issued</span>
+                        }
+                        else
+                        {
+                            <span style="color: #f59e0b;">Pending</span>
+                        }
+                    </div>
+                </div>
+                @if (Model.RefundedDate.HasValue)
+                {
+                    <div class="info-item">
+                        <div class="info-label">Refunded On</div>
+                        <div class="info-value">@Model.RefundedDate.Value.ToString("MMM dd, yyyy")</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Admin Notes -->
+        @if (!string.IsNullOrEmpty(Model.AdminNotes))
+        {
+            <div class="detail-section" style="grid-column: 1 / -1;">
+                <h2><i class="fa-solid fa-note-sticky"></i> Admin Notes</h2>
+
+                <div class="admin-notes">
+                    <p>@Model.AdminNotes</p>
+                </div>
+            </div>
+        }
+
+        <!-- Timeline -->
+        <div class="detail-section" style="grid-column: 1 / -1;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Return Timeline</h2>
+
+            <div class="timeline">
+                <!-- Requested -->
+                <div class="timeline-item completed">
+                    <div class="timeline-dot">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Return Requested</div>
+                        <div class="timeline-date">@Model.RequestDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</div>
+                        <div class="timeline-description">Customer submitted return request</div>
+                    </div>
+                </div>
+
+                <!-- Approved/Rejected -->
+                @if (Model.Status != "Pending")
+                {
+                    <div class="timeline-item @(Model.Status == "Rejected" ? "completed" : "completed")">
+                        <div class="timeline-dot">
+                            <i class="fa-solid @(Model.Status == "Rejected" ? "fa-times" : "fa-check")"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">@(Model.Status == "Rejected" ? "Return Rejected" : "Return Approved")</div>
+                            @if (Model.ApprovedDate.HasValue)
+                            {
+                                <div class="timeline-date">@Model.ApprovedDate.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")</div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ReturnAuthorizationNumber))
+                            {
+                                <div class="timeline-description">RAN: @Model.ReturnAuthorizationNumber</div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Received -->
+                @if (Model.Status == "Received" || Model.Status == "Refunded")
+                {
+                    <div class="timeline-item completed">
+                        <div class="timeline-dot">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Item Received</div>
+                            @if (Model.ReceivedDate.HasValue)
+                            {
+                                <div class="timeline-date">@Model.ReceivedDate.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")</div>
+                            }
+                            <div class="timeline-description">Returned item received and inspected</div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Refunded -->
+                @if (Model.Status == "Refunded")
+                {
+                    <div class="timeline-item completed">
+                        <div class="timeline-dot">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Refund Issued</div>
+                            @if (Model.RefundedDate.HasValue)
+                            {
+                                <div class="timeline-date">@Model.RefundedDate.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")</div>
+                            }
+                            <div class="timeline-description">R @Model.RefundAmount.ToString("N2") refunded to customer</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelector('.success-notification').style.display = 'none';
+        }, 5000);
+    </script>
+}

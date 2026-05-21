@@ -1,0 +1,492 @@
+﻿@{
+    ViewData["Title"] = "Manage Products, Categories & SubCategories";
+    var products = ViewBag.Products as IEnumerable<WebApplication1.Models.Product>;
+    var categories = ViewBag.Categories as IEnumerable<WebApplication1.Models.Category>;
+    var subCategories = ViewBag.SubCategories as IEnumerable<WebApplication1.Models.SubCategory>;
+    var productSearchTerm = ViewBag.ProductSearchTerm as string;
+    var categorySearchTerm = ViewBag.CategorySearchTerm as string;
+    var subCategorySearchTerm = ViewBag.SubCategorySearchTerm as string;
+    var activeSection = ViewBag.ActiveSection as string ?? "products";
+}
+
+<link rel="stylesheet" href="~/css/DevChanges.css" />
+
+<div class="manage-container">
+    <a asp-controller="Admin" asp-action="Dashboard" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="page-header">
+        <i class="fas fa-cogs"></i>
+        <h1>System Management</h1>
+    </div>
+
+    <p class="subtitle">Manage products, categories, and subcategories</p>
+
+    <div class="divider"></div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-button @(activeSection == "products" ? "active" : "")" onclick="showSection('products')">
+            <i class="fas fa-boxes"></i> Products (@ViewBag.TotalProducts)
+        </button>
+        <button class="tab-button @(activeSection == "categories" ? "active" : "")" onclick="showSection('categories')">
+            <i class="fas fa-folder"></i> Categories (@ViewBag.TotalCategories)
+        </button>
+        <button class="tab-button @(activeSection == "subcategories" ? "active" : "")" onclick="showSection('subcategories')">
+            <i class="fas fa-folder-open"></i> SubCategories (@ViewBag.TotalSubCategories)
+        </button>
+    </div>
+
+    <!-- PRODUCTS SECTION -->
+    <div id="products-section" class="tab-content @(activeSection == "products" ? "active" : "")">
+        <div class="section-header">
+            <h2><i class="fas fa-boxes"></i> Manage Products</h2>
+            <p class="section-subtitle">
+                @if (!string.IsNullOrEmpty(productSearchTerm))
+                {
+                    <text>Search results for "@productSearchTerm"</text>
+                }
+                else
+                {
+                    <text>Showing top 10 of @ViewBag.TotalProducts products</text>
+                }
+            </p>
+        </div>
+
+        <div class="search-section">
+            <form asp-action="SearchProducts" method="get" class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" name="searchTerm" value="@productSearchTerm" placeholder="Search by name, SKU, category..." />
+            </form>
+            <div class="action-buttons-group">
+                <div class="results-count">
+                    <span>@products.Count()</span> product(s) found
+                </div>
+                <a asp-action="CreateProduct" class="btn-create">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+                <a asp-action="BulkUpload" class="btn-create" style="background:#0d6efd; margin-left:8px;">
+                    <i class="fas fa-file-csv"></i> Bulk Upload
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(productSearchTerm))
+        {
+            <div style="margin-bottom: 20px;">
+                <a asp-action="Index" asp-route-section="products" class="btn-clear-search">
+                    <i class="fas fa-times"></i> Clear Search
+                </a>
+            </div>
+        }
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Sub Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (products.Any())
+                    {
+                        @foreach (var product in products)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl" alt="@product.Name" class="product-thumbnail" onerror="this.src='/images/no-image.jpg'" />
+                                    }
+                                    else
+                                    {
+                                        <div class="product-thumbnail no-image">
+                                            <i class="fas fa-image"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td class="product-name-cell">@product.Name</td>
+                                <td class="sku-cell">@product.SKU</td>
+                                <td>
+                                    <span class="category-badge">
+                                        <i class="fas fa-folder"></i>
+                                        @product.Category?.Name
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="subcategory-badge">
+                                        <i class="fas fa-folder-open"></i>
+                                        @product.SubCategory?.Name
+                                    </span>
+                                </td>
+                                <td class="price-cell">R @product.Price.ToString("N2")</td>
+                                <td>@product.StockQuantity units</td>
+                                <td>
+                                    @if (product.InStock)
+                                    {
+                                        <span class="status-badge status-active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-inactive">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="ProductDetails" asp-route-id="@product.Id" class="btn-view">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 60px 20px; color: #999;">
+                                <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 15px; display: block;"></i>
+                                <p style="font-size: 16px; margin-bottom: 10px;">No products found</p>
+                                @if (!string.IsNullOrEmpty(productSearchTerm))
+                                {
+                                    <p style="font-size: 14px;">Try a different search term</p>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CATEGORIES SECTION -->
+    <div id="categories-section" class="tab-content @(activeSection == "categories" ? "active" : "")">
+        <div class="section-header">
+            <h2><i class="fas fa-folder"></i> Manage Categories</h2>
+            <p class="section-subtitle">
+                @if (!string.IsNullOrEmpty(categorySearchTerm))
+                {
+                    <text>Search results for "@categorySearchTerm"</text>
+                }
+                else
+                {
+                    <text>Showing all @ViewBag.TotalCategories categories</text>
+                }
+            </p>
+        </div>
+
+        <div class="search-section">
+            <form asp-action="SearchCategories" method="get" class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" name="searchTerm" value="@categorySearchTerm" placeholder="Search by name or description..." />
+            </form>
+            <div class="action-buttons-group">
+                <div class="results-count">
+                    <span>@categories.Count()</span> categor(ies) found
+                </div>
+                <a asp-action="CreateCategory" class="btn-create">
+                    <i class="fas fa-plus"></i> Add Category
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(categorySearchTerm))
+        {
+            <div style="margin-bottom: 20px;">
+                <a asp-action="Index" asp-route-section="categories" class="btn-clear-search">
+                    <i class="fas fa-times"></i> Clear Search
+                </a>
+            </div>
+        }
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Display Order</th>
+                        <th>SubCategories</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (categories.Any())
+                    {
+                        @foreach (var category in categories)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="icon-display">
+                                        <i class="fas @category.IconName"></i>
+                                    </div>
+                                </td>
+                                <td class="product-name-cell">@category.Name</td>
+                                <td class="description-cell">@category.Description</td>
+                                <td class="order-cell">@category.DisplayOrder</td>
+                                <td>
+                                    <span class="count-badge">
+                                        <i class="fas fa-folder-open"></i>
+                                        @category.SubCategories?.Count() subcategories
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="status-badge status-active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-inactive">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <a asp-action="CategoryDetails" asp-route-id="@category.Id" class="btn-view">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <form asp-action="ToggleCategoryActive" method="post" style="display: inline;">
+                                            <input type="hidden" name="id" value="@category.Id" />
+                                            @if (category.IsActive)
+                                            {
+                                                <button type="submit" class="btn-toggle-small btn-deactivate" title="Deactivate" onclick="return confirm('Are you sure you want to deactivate this category?')">
+                                                    <i class="fas fa-toggle-on"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn-toggle-small btn-activate" title="Activate" onclick="return confirm('Are you sure you want to activate this category?')">
+                                                    <i class="fas fa-toggle-off"></i>
+                                                </button>
+                                            }
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: #999;">
+                                <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 15px; display: block;"></i>
+                                <p style="font-size: 16px; margin-bottom: 10px;">No categories found</p>
+                                @if (!string.IsNullOrEmpty(categorySearchTerm))
+                                {
+                                    <p style="font-size: 14px;">Try a different search term</p>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SUBCATEGORIES SECTION -->
+    <div id="subcategories-section" class="tab-content @(activeSection == "subcategories" ? "active" : "")">
+        <div class="section-header">
+            <h2><i class="fas fa-folder-open"></i> Manage SubCategories</h2>
+            <p class="section-subtitle">
+                @if (!string.IsNullOrEmpty(subCategorySearchTerm))
+                {
+                    <text>Search results for "@subCategorySearchTerm"</text>
+                }
+                else
+                {
+                    <text>Showing all @ViewBag.TotalSubCategories subcategories</text>
+                }
+            </p>
+        </div>
+
+        <div class="search-section">
+            <form asp-action="SearchSubCategories" method="get" class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" name="searchTerm" value="@subCategorySearchTerm" placeholder="Search by name, description, or parent category..." />
+            </form>
+            <div class="action-buttons-group">
+                <div class="results-count">
+                    <span>@subCategories.Count()</span> subcategor(ies) found
+                </div>
+                <a asp-action="CreateSubCategory" class="btn-create">
+                    <i class="fas fa-plus"></i> Add SubCategory
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(subCategorySearchTerm))
+        {
+            <div style="margin-bottom: 20px;">
+                <a asp-action="Index" asp-route-section="subcategories" class="btn-clear-search">
+                    <i class="fas fa-times"></i> Clear Search
+                </a>
+            </div>
+        }
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Parent Category</th>
+                        <th>Description</th>
+                        <th>Display Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (subCategories.Any())
+                    {
+                        @foreach (var subCategory in subCategories)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="icon-display">
+                                        <i class="fas @subCategory.IconName"></i>
+                                    </div>
+                                </td>
+                                <td class="product-name-cell">@subCategory.Name</td>
+                                <td>
+                                    <span class="category-badge">
+                                        <i class="fas fa-folder"></i>
+                                        @subCategory.Category?.Name
+                                    </span>
+                                </td>
+                                <td class="description-cell">@subCategory.Description</td>
+                                <td class="order-cell">@subCategory.DisplayOrder</td>
+                                <td>
+                                    @if (subCategory.IsActive)
+                                    {
+                                        <span class="status-badge status-active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-inactive">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <a asp-action="SubCategoryDetails" asp-route-id="@subCategory.Id" class="btn-view">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <form asp-action="ToggleSubCategoryActive" method="post" style="display: inline;">
+                                            <input type="hidden" name="id" value="@subCategory.Id" />
+                                            @if (subCategory.IsActive)
+                                            {
+                                                <button type="submit" class="btn-toggle-small btn-deactivate" title="Deactivate" onclick="return confirm('Are you sure you want to deactivate this subcategory?')">
+                                                    <i class="fas fa-toggle-on"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn-toggle-small btn-activate" title="Activate" onclick="return confirm('Are you sure you want to activate this subcategory?')">
+                                                    <i class="fas fa-toggle-off"></i>
+                                                </button>
+                                            }
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: #999;">
+                                <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 15px; display: block;"></i>
+                                <p style="font-size: 16px; margin-bottom: 10px;">No subcategories found</p>
+                                @if (!string.IsNullOrEmpty(subCategorySearchTerm))
+                                {
+                                    <p style="font-size: 14px;">Try a different search term</p>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.tab-content').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+
+            // Add active class to clicked button
+            event.target.closest('.tab-button').classList.add('active');
+
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('section', sectionName);
+            window.history.pushState({}, '', url);
+        }
+
+        // Auto-submit forms on search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForms = document.querySelectorAll('.search-box');
+
+            searchForms.forEach(form => {
+                const searchInput = form.querySelector('input[type="text"]');
+                let typingTimer;
+                const doneTypingInterval = 800;
+
+                searchInput.addEventListener('keyup', function() {
+                    clearTimeout(typingTimer);
+                    if (searchInput.value.trim() !== '') {
+                        typingTimer = setTimeout(function() {
+                            form.submit();
+                        }, doneTypingInterval);
+                    }
+                });
+
+                searchInput.addEventListener('keydown', function() {
+                    clearTimeout(typingTimer);
+                });
+
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

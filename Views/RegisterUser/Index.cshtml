@@ -1,0 +1,120 @@
+﻿@model WebApplication1.Models.RegisterUserViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<link href="~/css/register.css" rel="stylesheet" />
+
+<div class="register-page">
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Create Account</h1>
+            <p>Join us today and start your journey</p>
+        </div>
+
+        <div class="register-card">
+            <form asp-action="Index" method="post" class="register-form">
+                <div asp-validation-summary="ModelOnly" class="error-summary"></div>
+
+                <!-- Account Information -->
+                <div class="form-section">
+                    <h3 class="section-title">Account Information</h3>
+
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                        <span asp-validation-for="Email" class="error-message"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Password"></label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                            <span asp-validation-for="Password" class="error-message"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ConfirmPassword"></label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                            <span asp-validation-for="ConfirmPassword" class="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Name"></label>
+                            <input asp-for="Name" class="form-control" placeholder="Name" />
+                            <span asp-validation-for="Name" class="error-message"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Surname"></label>
+                            <input asp-for="Surname" class="form-control" placeholder="Surname" />
+                            <span asp-validation-for="Surname" class="error-message"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="Phone number" />
+                            <span asp-validation-for="PhoneNumber" class="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address Details -->
+                <div class="form-section">
+                    <h3 class="section-title">Address Details</h3>
+
+                    <div class="form-group">
+                        <label asp-for="StreetAddress"></label>
+                        <input asp-for="StreetAddress" class="form-control" placeholder="Street address" />
+                        <span asp-validation-for="StreetAddress" class="error-message"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="City"></label>
+                            <input asp-for="City" class="form-control" placeholder="City" />
+                            <span asp-validation-for="City" class="error-message"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="State"></label>
+                            <input asp-for="State" class="form-control" placeholder="State/Province" />
+                            <span asp-validation-for="State" class="error-message"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PostalCode"></label>
+                            <input asp-for="PostalCode" class="form-control" placeholder="Postal code" />
+                            <span asp-validation-for="PostalCode" class="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="register-btn">
+                    <span>Create Account</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </button>
+
+                <div class="login-link">
+                    Already have an account? <a asp-controller="Login" asp-action="Index">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

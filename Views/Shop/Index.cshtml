@@ -1,0 +1,290 @@
+﻿@model WebApplication1.Models.ViewModels.ShopIndexViewModel
+
+@{
+    ViewData["Title"] = "Shop";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+    var baseUrl = Url.Action(currentAction, "Shop") ?? "/Shop";
+
+    // JS-safe numeric literal
+    var pageSizeDefault = Model?.PageSize > 0 ? Model.PageSize : 24;
+}
+
+<link href="~/css/shop.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="shop-container">
+    <div class="shop-header">
+        <h1>@Model.PageTitle</h1>
+        <p>Browse our complete collection of quality products</p>
+    </div>
+
+    <div class="filter-bar">
+
+        <div class="filter-item filter-search">
+            <label>Search:</label>
+            <input id="shopSearch"
+                   type="text"
+                   value="@Model.SearchTerm"
+                   placeholder="Search products by name, SKU, or description..." />
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-item">
+                <label>Category:</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.Name" selected="@(Model.SelectedCategory == cat.Name)">@cat.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Sub Category:</label>
+                <select id="subCategoryFilter">
+                    <option value="">All Sub Categories</option>
+                    @foreach (var sc in Model.SubCategories)
+                    {
+                        <option value="@sc.Name" selected="@(Model.SelectedSubCategory == sc.Name)">@sc.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Sort:</label>
+                <select id="sortFilter">
+                    <option value="name_asc" selected="@((Model.Sort ?? "name_asc") == "name_asc")">Name (A–Z)</option>
+                    <option value="newest" selected="@((Model.Sort ?? "") == "newest")">Newest</option>
+                    <option value="price_asc" selected="@((Model.Sort ?? "") == "price_asc")">Price (Low → High)</option>
+                    <option value="price_desc" selected="@((Model.Sort ?? "") == "price_desc")">Price (High → Low)</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Page Size:</label>
+                <select id="pageSizeFilter">
+                    <option value="24" selected="@(Model.PageSize == 24)">24</option>
+                    <option value="48" selected="@(Model.PageSize == 48)">48</option>
+                    <option value="96" selected="@(Model.PageSize == 96)">96</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>&nbsp;</label>
+                <button type="button" class="btn-apply-filter" onclick="applyShopFilters()">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+        @if (Model.Products != null && Model.Products.Any())
+        {
+            @foreach (var product in Model.Products)
+            {
+                <a asp-controller="Shop"
+                   asp-action="Product"
+                   asp-route-id="@product.Id"
+                   asp-route-returnAction="@currentAction"
+                   asp-route-category="@Model.SelectedCategory"
+                   asp-route-subCategory="@Model.SelectedSubCategory"
+                   asp-route-search="@Model.SearchTerm"
+                   asp-route-sort="@Model.Sort"
+                   asp-route-page="@Model.Page"
+                   asp-route-pageSize="@Model.PageSize"
+                   class="pro-product-card">
+
+                    @* Badges *@
+                    @if (product.IsNewArrival)
+                    {
+                        <span class="pro-new-badge">NEW</span>
+                    }
+                    @if (product.IsSpecial)
+                    {
+                        <span class="pro-discount-badge special">SPECIAL</span>
+                    }
+                    @if (!product.InStock || product.StockQuantity == 0)
+                    {
+                        <span class="pro-out-badge">OUT OF STOCK</span>
+                    }
+
+                    <div class="pro-product-image">
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="pro-image-placeholder">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="pro-product-info">
+                        @if (!string.IsNullOrWhiteSpace(product.Category?.Name))
+                        {
+                            <p class="pro-category-tag">@product.Category.Name</p>
+                        }
+
+                        <h4 class="pro-product-name">@product.Name</h4>
+
+                        @if (!string.IsNullOrWhiteSpace(product.SKU))
+                        {
+                            <p class="pro-product-sku">SKU: @product.SKU</p>
+                        }
+
+                        @if (product.Price > 0)
+                        {
+                            <div class="pro-price-section">
+                                <p class="pro-current-price @(product.IsSpecial ? "special" : "")">
+                                    R @product.Price.ToString("N2")
+                                </p>
+                            </div>
+                        }
+
+                        <div class="pro-rating">
+                            <span class="pro-stars">★★★★★</span>
+                            <span class="pro-rating-count">(0)</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        }
+        else
+        {
+            <div class="no-products">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or check back later.</p>
+            </div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination">
+            @{
+                string BuildUrl(int p)
+                {
+                    var qs = new System.Collections.Generic.List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(Model.SelectedCategory)) qs.Add("category=" + System.Net.WebUtility.UrlEncode(Model.SelectedCategory));
+                    if (!string.IsNullOrWhiteSpace(Model.SelectedSubCategory)) qs.Add("subCategory=" + System.Net.WebUtility.UrlEncode(Model.SelectedSubCategory));
+                    if (!string.IsNullOrWhiteSpace(Model.SearchTerm)) qs.Add("search=" + System.Net.WebUtility.UrlEncode(Model.SearchTerm));
+
+                    qs.Add("sort=" + System.Net.WebUtility.UrlEncode(Model.Sort ?? "name_asc"));
+                    qs.Add("page=" + p);
+                    qs.Add("pageSize=" + Model.PageSize);
+
+                    return baseUrl + "?" + string.Join("&", qs);
+                }
+
+                int start = System.Math.Max(1, Model.Page - 2);
+                int end = System.Math.Min(Model.TotalPages, Model.Page + 2);
+            }
+
+            <a class="btn-back" href="@(Model.HasPrevious? BuildUrl(Model.Page - 1) : "#")">Prev</a>
+
+            @for (int p = start; p <= end; p++)
+            {
+                if (p == Model.Page)
+                {
+                    <span class="btn-back" style="background:#3b82f6; color:white; border-color:#3b82f6;">@p</span>
+                }
+                else
+                {
+                    <a class="btn-back" href="@BuildUrl(p)">@p</a>
+                }
+            }
+
+            <a class="btn-back" href="@(Model.HasNext? BuildUrl(Model.Page + 1) : "#")">Next</a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            "use strict";
+
+            var searchEl = document.getElementById("shopSearch");
+            var categoryEl = document.getElementById("categoryFilter");
+            var subCategoryEl = document.getElementById("subCategoryFilter");
+            var sortEl = document.getElementById("sortFilter");
+            var pageSizeEl = document.getElementById("pageSizeFilter");
+
+            function refreshSubCategories() {
+                if (!subCategoryEl) return;
+
+                var selectedCat = (categoryEl && categoryEl.value) ? categoryEl.value : "";
+                var currentSub = subCategoryEl.value ? subCategoryEl.value : "";
+
+                subCategoryEl.innerHTML = '<option value="">All Sub Categories</option>';
+
+                if (!selectedCat) {
+                    subCategoryEl.value = "";
+                    return;
+                }
+
+                var url = "/Shop/SubCategories?category=" + encodeURIComponent(selectedCat);
+
+                fetch(url, { headers: { "Accept": "application/json" } })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error("Failed to load subcategories");
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        data = data || [];
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i] || {};
+                            var name = item.name || item.Name;
+                            if (!name) continue;
+
+                            var opt = document.createElement("option");
+                            opt.value = name;
+                            opt.textContent = name;
+                            subCategoryEl.appendChild(opt);
+                        }
+
+                        var stillExists = false;
+                        for (var j = 0; j < subCategoryEl.options.length; j++) {
+                            if (subCategoryEl.options[j].value === currentSub) {
+                                stillExists = true;
+                                break;
+                            }
+                        }
+                        subCategoryEl.value = stillExists ? currentSub : "";
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        subCategoryEl.value = "";
+                    });
+            }
+
+            window.applyShopFilters = function () {
+                var category = (categoryEl && categoryEl.value) ? categoryEl.value : "";
+                var subCategory = (subCategoryEl && subCategoryEl.value) ? subCategoryEl.value : "";
+                var search = (searchEl && searchEl.value) ? searchEl.value : "";
+                var sort = (sortEl && sortEl.value) ? sortEl.value : "name_asc";
+                var pageSize = (pageSizeEl && pageSizeEl.value) ? pageSizeEl.value : String(@pageSizeDefault);
+
+                var params = new URLSearchParams();
+                if (category) params.set("category", category);
+                if (subCategory) params.set("subCategory", subCategory);
+                if (search && search.replace(/\s+/g, "").length > 0) params.set("search", search.trim());
+
+                params.set("sort", sort);
+                params.set("page", "1");
+                params.set("pageSize", pageSize);
+
+                window.location.href = "@baseUrl" + (params.toString() ? ("?" + params.toString()) : "");
+            };
+
+            if (categoryEl) categoryEl.addEventListener("change", refreshSubCategories);
+            if (sortEl) sortEl.addEventListener("change", window.applyShopFilters);
+            if (pageSizeEl) pageSizeEl.addEventListener("change", window.applyShopFilters);
+        })();
+    </script>
+}

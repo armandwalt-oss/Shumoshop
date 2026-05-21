@@ -1,0 +1,199 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    var totalOrders = (int)ViewBag.TotalOrders;
+    var pendingOrders = (int)ViewBag.PendingOrders;
+    var totalRevenue = (decimal)ViewBag.TotalRevenue;
+    var pendingReturns = (int)ViewBag.PendingReturns;
+    var totalReturns = (int)ViewBag.TotalReturns;
+    var totalUsers = (int)ViewBag.TotalUsers;
+    var lowStockCount = (int)(ViewBag.LowStockCount ?? 0);
+    var lowStockThreshold = (int)(ViewBag.LowStockThreshold ?? 10);
+    var recentOrders = ViewBag.RecentOrders as List<WebApplication1.Models.Order>;
+    var recentReturns = ViewBag.RecentReturns as List<WebApplication1.Models.ReturnRequest>;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-gauge-high"></i>
+            Admin Dashboard
+        </h1>
+        <p>Manage your e-commerce platform</p>
+    </div>
+
+    @if (lowStockCount > 0)
+    {
+        <div class="alert alert-warning d-flex align-items-center justify-content-between"
+             style="margin: 16px 0; padding: 14px 20px; border-radius: 10px; background:#fff8e1; border: 1px solid #f6c453;">
+            <div>
+                <i class="fa-solid fa-triangle-exclamation" style="color:#c2410c; margin-right:8px;"></i>
+                <strong>@lowStockCount product@(lowStockCount == 1 ? "" : "s")</strong>
+                @(lowStockCount == 1 ? "is" : "are") at or below the low-stock threshold of @lowStockThreshold.
+            </div>
+            <a href="/Admin/LowStock" class="btn btn-sm btn-warning">View Low Stock →</a>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-icon">
+                <i class="fa-solid fa-shopping-cart"></i>
+            </div>
+            <div class="stat-value">@totalOrders</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+
+        <div class="stat-card orange">
+            <div class="stat-icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-value">@pendingOrders</div>
+            <div class="stat-label">Pending Orders</div>
+        </div>
+
+        <div class="stat-card green">
+            <div class="stat-icon">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">R @totalRevenue.ToString("N2")</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="stat-icon">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <div class="stat-value">@pendingReturns</div>
+            <div class="stat-label">Pending Returns</div>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="stat-icon">
+                <i class="fa-solid fa-undo"></i>
+            </div>
+            <div class="stat-value">@totalReturns</div>
+            <div class="stat-label">Total Returns</div>
+        </div>
+
+        <div class="stat-card cyan">
+            <div class="stat-icon">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="stat-value">@totalUsers</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="/Admin/Orders" class="action-btn">
+            <i class="fa-solid fa-box"></i>
+            <span>Manage Orders</span>
+        </a>
+        <a href="/Admin/Returns" class="action-btn">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Manage Returns</span>
+        </a>
+        <a href="/Admin/Users" class="action-btn">
+            <i class="fa-solid fa-users"></i>
+            <span>Manage Users</span>
+        </a>
+        <a href="/Admin/ShippingSettings" class="action-btn">
+            <i class="fa-solid fa-truck-fast"></i>
+            <span>Shipping Settings</span>
+        </a>
+        <a href="/Admin/LowStock" class="action-btn">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Low Stock@(lowStockCount > 0 ? $" ({lowStockCount})" : "")</span>
+        </a>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="section-grid">
+        <!-- Recent Orders -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h2>
+                <a href="/Admin/Orders" class="view-all-link">View All</a>
+            </div>
+
+            @if (recentOrders != null && recentOrders.Any())
+            {
+                <div class="item-list">
+                    @foreach (var order in recentOrders.Take(5))
+                    {
+                        <div class="list-item">
+                            <div class="item-info">
+                                <h4>Order #@order.OrderNumber</h4>
+                                <p>Customer: @order.User?.Name</p>
+                                <p>Date: @order.OrderDate.ToString("MMM dd, yyyy")</p>
+                            </div>
+                            <div class="item-action">
+                                <span class="status-badge status-@order.Status.ToLower()">@order.Status</span>
+                                <a href="/Admin/OrderDetails/@order.Id" class="btn-view">View</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No orders yet</p>
+                </div>
+            }
+        </div>
+
+        <!-- Recent Returns -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-rotate-left"></i> Recent Returns</h2>
+                <a href="/Admin/Returns" class="view-all-link">View All</a>
+            </div>
+
+            @if (recentReturns != null && recentReturns.Any())
+            {
+                <div class="item-list">
+                    @foreach (var returnReq in recentReturns.Take(5))
+                    {
+                        <div class="list-item">
+                            <div class="item-info">
+                                <h4>Return #@returnReq.Id</h4>
+                                <p>Customer: @returnReq.User?.Name</p>
+                                <p>Date: @returnReq.RequestDate.ToString("MMM dd, yyyy")</p>
+                            </div>
+                            <div class="item-action">
+                                <span class="status-badge status-@returnReq.Status.ToLower()">@returnReq.Status</span>
+                                <a href="/Admin/ReturnDetails/@returnReq.Id" class="btn-view">View</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No return requests yet</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelector('.success-notification').style.display = 'none';
+        }, 5000);
+    </script>
+}

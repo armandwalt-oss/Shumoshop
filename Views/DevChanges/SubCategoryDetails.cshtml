@@ -1,0 +1,214 @@
+﻿@model WebApplication1.Models.SubCategory
+
+@{
+    ViewData["Title"] = "SubCategory Details";
+}
+
+<link rel="stylesheet" href="~/css/DevChanges.css" />
+
+<div class="manage-container">
+    <a asp-action="Index" asp-route-section="subcategories" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to SubCategories
+    </a>
+
+    <div class="page-header">
+        <i class="fas fa-folder-open"></i>
+        <h1>SubCategory Details</h1>
+    </div>
+
+    <p class="subtitle">View and edit subcategory information</p>
+
+    <div class="divider"></div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="details-grid">
+        <!-- SubCategory Information Card -->
+        <div class="details-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> SubCategory Information</h3>
+                <form asp-action="ToggleSubCategoryActive" method="post" style="display: inline;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    @if (Model.IsActive)
+                    {
+                        <button type="submit" class="btn-toggle btn-active" onclick="return confirm('Deactivate this subcategory?')">
+                            <i class="fas fa-toggle-on"></i> Active
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn-toggle btn-inactive" onclick="return confirm('Activate this subcategory?')">
+                            <i class="fas fa-toggle-off"></i> Inactive
+                        </button>
+                    }
+                </form>
+            </div>
+
+            <form asp-action="UpdateSubCategory" method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="IsActive" />
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> SubCategory Name</label>
+                        <input type="text" asp-for="Name" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-folder"></i> Parent Category</label>
+                        <select asp-for="CategoryId" class="form-control" required>
+                            <option value="">Select Category</option>
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-icons"></i> Icon Name</label>
+                        <input type="text" asp-for="IconName" class="form-control" required id="iconInput" />
+                        <small class="form-text">Use FontAwesome icon names (e.g., fa-car)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-sort-numeric-up"></i> Display Order</label>
+                        <input type="number" asp-for="DisplayOrder" class="form-control" required />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-align-left"></i> Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a asp-action="Index" asp-route-section="subcategories" class="btn-cancel">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- SubCategory Preview & Stats Card -->
+        <div class="details-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar"></i> SubCategory Overview</h3>
+            </div>
+
+            <div class="category-preview">
+                <div class="icon-preview-display" style="margin-bottom: 20px;">
+                    <i class="fas @Model.IconName" id="iconPreview"></i>
+                </div>
+
+                <div class="preview-info">
+                    <h4>@Model.Name</h4>
+                    <p class="preview-category" style="margin-bottom: 15px;">
+                        <span class="category-badge">
+                            <i class="fas fa-folder"></i>
+                            @Model.Category?.Name
+                        </span>
+                    </p>
+                    <p class="preview-category" style="margin-bottom: 20px;">@Model.Description</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <i class="fas fa-box"></i>
+                            <div>
+                                <span class="stat-number">@Model.Products?.Count()</span>
+                                <span class="stat-label">Products</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <i class="fas fa-sort"></i>
+                            <div>
+                                <span class="stat-number">@Model.DisplayOrder</span>
+                                <span class="stat-label">Display Order</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            @if (Model.IsActive)
+                            {
+                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                <div>
+                                    <span class="stat-label">Status</span>
+                                    <span class="status-badge status-active">Active</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <i class="fas fa-times-circle" style="color: #ef4444;"></i>
+                                <div>
+                                    <span class="stat-label">Status</span>
+                                    <span class="status-badge status-inactive">Inactive</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Products != null && Model.Products.Any())
+            {
+                <div class="subcategories-list">
+                    <h4 style="margin-top: 25px; margin-bottom: 15px; font-size: 16px; color: #1a1a1a;">
+                        <i class="fas fa-box"></i> Products in this SubCategory
+                    </h4>
+                    @foreach (var product in Model.Products.OrderBy(p => p.Name).Take(5))
+                    {
+                        <div class="subcategory-item">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid #e5e7eb;" onerror="this.style.display='none'" />
+                            }
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1a1a1a;">@product.Name</div>
+                                <div style="font-size: 12px; color: #6b7280;">@product.SKU - R @product.Price.ToString("N2")</div>
+                            </div>
+                            @if (product.InStock)
+                            {
+                                <span class="status-badge status-active" style="font-size: 11px;">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-inactive" style="font-size: 11px;">Inactive</span>
+                            }
+                        </div>
+                    }
+                    @if (Model.Products.Count() > 5)
+                    {
+                        <p style="text-align: center; margin-top: 10px; color: #6b7280; font-size: 13px;">
+                            + @(Model.Products.Count() - 5) more products
+                        </p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('iconInput').addEventListener('input', function(e) {
+            const iconPreview = document.getElementById('iconPreview');
+            iconPreview.className = 'fas ' + e.target.value;
+        });
+    </script>
+}

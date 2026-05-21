@@ -1,0 +1,180 @@
+﻿@model WebApplication1.Models.Address
+
+@{
+    ViewData["Title"] = "Edit Address";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <a asp-controller="Account" asp-action="Addresses">Addresses</a>
+        <span>/</span>
+        <span>Edit Address</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fa-solid fa-pen-to-square"></i> Edit Address</h1>
+        <p>Update your address information</p>
+    </div>
+
+    <!-- Edit Address Form -->
+    <div class="form-container">
+        <form asp-controller="Account" asp-action="EditAddress" method="post" class="address-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UserId" />
+
+            <!-- Address Type & Label -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-tag"></i> Address Information</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="AddressType">Address Type *</label>
+                        <select asp-for="AddressType" class="form-control" required>
+                            <option value="">Select type...</option>
+                            <option value="Shipping">Shipping</option>
+                            <option value="Billing">Billing</option>
+                            <option value="Both">Both (Shipping & Billing)</option>
+                        </select>
+                        <span asp-validation-for="AddressType" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Label">Address Label (Optional)</label>
+                        <input asp-for="Label" class="form-control" placeholder="e.g., Home, Work, Mom's House" />
+                        <span asp-validation-for="Label" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-user"></i> Contact Information</h2>
+
+                <div class="form-group">
+                    <label asp-for="FullName">Full Name *</label>
+                    <input asp-for="FullName" class="form-control" placeholder="John Doe" required />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PhoneNumber">Phone Number *</label>
+                    <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="+27 XX XXX XXXX" required />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Address Details -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-location-dot"></i> Address Details</h2>
+
+                <div class="form-group">
+                    <label asp-for="StreetAddress">Street Address *</label>
+                    <input asp-for="StreetAddress" class="form-control" placeholder="123 Main Street" required />
+                    <span asp-validation-for="StreetAddress" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ApartmentUnit">Apartment, Suite, Unit (Optional)</label>
+                    <input asp-for="ApartmentUnit" class="form-control" placeholder="Apt 4B, Suite 200" />
+                    <span asp-validation-for="ApartmentUnit" class="text-danger"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="City">City *</label>
+                        <input asp-for="City" class="form-control" placeholder="Johannesburg" required />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="State">State/Province *</label>
+                        <input asp-for="State" class="form-control" placeholder="Gauteng" required />
+                        <span asp-validation-for="State" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="PostalCode">Postal Code *</label>
+                        <input asp-for="PostalCode" class="form-control" placeholder="2000" required />
+                        <span asp-validation-for="PostalCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Country">Country</label>
+                        <input asp-for="Country" class="form-control" />
+                        <span asp-validation-for="Country" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Instructions -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-note-sticky"></i> Delivery Instructions</h2>
+
+                <div class="form-group">
+                    <label asp-for="DeliveryInstructions">Special Instructions (Optional)</label>
+                    <textarea asp-for="DeliveryInstructions" class="form-control" rows="3" placeholder="e.g., Ring doorbell twice, Leave at gate, Call upon arrival"></textarea>
+                    <span asp-validation-for="DeliveryInstructions" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Default Settings -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-star"></i> Default Settings</h2>
+
+                <div class="form-check-group">
+                    <div class="form-check">
+                        <input asp-for="IsDefaultShipping" type="checkbox" class="form-check-input" id="isDefaultShipping" />
+                        <label for="isDefaultShipping" class="form-check-label">
+                            <i class="fa-solid fa-truck"></i>
+                            <div>
+                                <strong>Set as Default Shipping Address</strong>
+                                <p>Use this address by default for shipping</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="IsDefaultBilling" type="checkbox" class="form-check-input" id="isDefaultBilling" />
+                        <label for="isDefaultBilling" class="form-check-label">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <div>
+                                <strong>Set as Default Billing Address</strong>
+                                <p>Use this address by default for billing</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Summary -->
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Update Address
+                </button>
+                <a asp-controller="Account" asp-action="Addresses" class="btn-cancel">
+                    <i class="fa-solid fa-times"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

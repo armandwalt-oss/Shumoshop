@@ -1,0 +1,52 @@
+﻿@{
+    ViewData["Title"] = "Track Your Order";
+}
+
+<link href="~/css/ordertracking.css" rel="stylesheet" />
+
+<div class="tracking-page">
+    <div class="tracking-container">
+        <div class="tracking-header">
+            <h1>Track Your Order</h1>
+            <p>Enter your order number to check the status of your delivery</p>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="error-message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="tracking-search-card">
+            <form asp-action="Track" method="post" class="tracking-form">
+                <div class="form-group">
+                    <label for="orderNumber">Order Number</label>
+                    <input type="text"
+                           id="orderNumber"
+                           name="orderNumber"
+                           class="form-control"
+                           placeholder="Enter your order number (e.g., ORD-12345)"
+                           required />
+                </div>
+
+                <button type="submit" class="track-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>Track Order</span>
+                </button>
+            </form>
+
+            <div class="help-text">
+                <p><strong>Need help?</strong> Your order number can be found in your confirmation email.</p>
+            </div>
+        </div>
+    </div>
+</div>

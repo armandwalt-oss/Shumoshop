@@ -1,0 +1,298 @@
+﻿@model WebApplication1.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Account Settings";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <span>Settings</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fa-solid fa-gear"></i> Account Settings</h1>
+        <p>Manage your notification preferences and account settings</p>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="settings-container">
+        <!-- Notification Settings -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <h2><i class="fa-solid fa-bell"></i> Notification Preferences</h2>
+                <p>Choose how you want to receive notifications</p>
+            </div>
+
+            <form asp-controller="Account" asp-action="Settings" method="post" class="settings-form">
+                @Html.AntiForgeryToken()
+
+                <div class="settings-options">
+                    <!-- Email Notifications -->
+                    <div class="setting-option">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div class="setting-content">
+                            <h3>Email Notifications</h3>
+                            <p>Receive order updates, shipping notifications, and account alerts via email</p>
+                            <div class="setting-examples">
+                                <span><i class="fa-solid fa-check"></i> Order confirmations</span>
+                                <span><i class="fa-solid fa-check"></i> Shipping updates</span>
+                                <span><i class="fa-solid fa-check"></i> Delivery notifications</span>
+                            </div>
+                        </div>
+                        <div class="setting-toggle">
+                            <label class="toggle-switch">
+                                <input asp-for="EmailNotifications" type="checkbox" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SMS Notifications -->
+                    <div class="setting-option">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-message"></i>
+                        </div>
+                        <div class="setting-content">
+                            <h3>SMS Notifications</h3>
+                            <p>Receive important updates via text message</p>
+                            <div class="setting-examples">
+                                <span><i class="fa-solid fa-check"></i> Delivery alerts</span>
+                                <span><i class="fa-solid fa-check"></i> Order status changes</span>
+                                <span><i class="fa-solid fa-check"></i> Account security alerts</span>
+                            </div>
+                        </div>
+                        <div class="setting-toggle">
+                            <label class="toggle-switch">
+                                <input asp-for="SMSNotifications" type="checkbox" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Promotional Emails -->
+                    <div class="setting-option">
+                        <div class="setting-icon">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="setting-content">
+                            <h3>Promotional Emails</h3>
+                            <p>Receive special offers, discounts, and product recommendations</p>
+                            <div class="setting-examples">
+                                <span><i class="fa-solid fa-check"></i> Weekly deals</span>
+                                <span><i class="fa-solid fa-check"></i> Exclusive offers</span>
+                                <span><i class="fa-solid fa-check"></i> New arrivals</span>
+                            </div>
+                        </div>
+                        <div class="setting-toggle">
+                            <label class="toggle-switch">
+                                <input asp-for="PromotionalEmails" type="checkbox" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Summary -->
+                <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+
+                <!-- Save Button -->
+                <div class="settings-actions">
+                    <button type="submit" class="btn-save-settings">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Account Information -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <h2><i class="fa-solid fa-user-circle"></i> Account Information</h2>
+                <p>Your basic account details</p>
+            </div>
+
+            <div class="account-info-list">
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Name</span>
+                    </div>
+                    <div class="info-value">
+                        @Model.Name
+                    </div>
+                    <div class="info-action">
+                        <a asp-controller="Account" asp-action="EditProfile">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Email</span>
+                    </div>
+                    <div class="info-value">
+                        @Model.Email
+                    </div>
+                    <div class="info-action">
+                        <span class="info-note">Cannot be changed</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Phone</span>
+                    </div>
+                    <div class="info-value">
+                        @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)
+                    </div>
+                    <div class="info-action">
+                        <a asp-controller="Account" asp-action="EditProfile">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Member Since</span>
+                    </div>
+                    <div class="info-value">
+                        @Model.DateJoined.ToString("MMMM dd, yyyy")
+                    </div>
+                    <div class="info-action">
+                        <!-- No action -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Security</h2>
+                <p>Keep your account secure</p>
+            </div>
+
+            <div class="security-options">
+                <div class="security-option">
+                    <div class="security-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div class="security-content">
+                        <h3>Password</h3>
+                        <p>Last updated: @(Model.LastLoginDate?.ToString("MMM dd, yyyy") ?? "Never")</p>
+                        <p class="security-recommendation">
+                            <i class="fa-solid fa-info-circle"></i>
+                            We recommend changing your password every 3-6 months
+                        </p>
+                    </div>
+                    <div class="security-action">
+                        <a asp-controller="Account" asp-action="ChangePassword" class="btn-security-action">
+                            <i class="fa-solid fa-key"></i>
+                            Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy & Data -->
+        <div class="settings-section">
+            <div class="settings-section-header">
+                <h2><i class="fa-solid fa-user-shield"></i> Privacy & Data</h2>
+                <p>Manage your data and privacy preferences</p>
+            </div>
+
+            <div class="privacy-options">
+                <div class="privacy-option">
+                    <div class="privacy-icon">
+                        <i class="fa-solid fa-download"></i>
+                    </div>
+                    <div class="privacy-content">
+                        <h3>Download Your Data</h3>
+                        <p>Get a copy of all your account data including orders, addresses, and preferences</p>
+                    </div>
+                    <div class="privacy-action">
+                        <button class="btn-privacy-action" onclick="downloadData()">
+                            <i class="fa-solid fa-download"></i>
+                            Request Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="privacy-option">
+                    <div class="privacy-icon">
+                        <i class="fa-solid fa-trash"></i>
+                    </div>
+                    <div class="privacy-content">
+                        <h3>Delete Account</h3>
+                        <p>Permanently delete your account and all associated data</p>
+                        <p class="privacy-warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            This action cannot be undone
+                        </p>
+                    </div>
+                    <div class="privacy-action">
+                        <form id="deleteAccountForm" asp-controller="Account" asp-action="DeleteAccount" method="post" style="display:none;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="confirmEmail" id="confirmEmailInput" />
+                        </form>
+                        <button class="btn-privacy-action-danger" type="button" onclick="deleteAccount()">
+                            <i class="fa-solid fa-trash"></i>
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function downloadData() {
+            // Stream a JSON file containing the user's profile, addresses,
+            // orders and returns. Opens straight away — no email roundtrip.
+            window.location.href = '@Url.Action("DownloadMyData", "Account")';
+        }
+
+        function deleteAccount() {
+            const email = prompt(
+                'Account deletion is permanent.\n\n' +
+                'Your personal info (name, phone, addresses, wishlist, cart) will be erased.\n' +
+                'Your order history is retained for legal / accounting / tax records.\n\n' +
+                'To confirm, type your email address:');
+
+            if (email === null) return; // cancelled
+
+            if (!email || email.trim() === '') {
+                alert('Email confirmation required. Account was not deleted.');
+                return;
+            }
+
+            document.getElementById('confirmEmailInput').value = email.trim();
+            document.getElementById('deleteAccountForm').submit();
+        }
+    </script>
+}

@@ -1,0 +1,251 @@
+﻿@{
+    ViewData["Title"] = "User Details";
+    var user = ViewBag.User as WebApplication1.Models.ApplicationUser;
+    var orders = ViewBag.Orders as List<WebApplication1.Models.Order>;
+    var returns = ViewBag.Returns as List<WebApplication1.Models.ReturnRequest>;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin/Users" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Users
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-user-circle"></i>
+            @user.Name
+        </h1>
+        <p>Customer since @user.DateJoined.ToString("MMMM dd, yyyy")</p>
+    </div>
+
+    <div class="details-grid">
+        <!-- User Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-id-card"></i> User Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">@user.Name</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@user.Email</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">@(user.PhoneNumber ?? "N/A")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email Confirmed</div>
+                    <div class="info-value">@(user.EmailConfirmed ? "✓ Yes" : "✗ No")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-location-dot"></i> Address</h2>
+
+            @if (!string.IsNullOrEmpty(user.StreetAddress))
+            {
+                <div class="address-display">
+                    <p>@user.StreetAddress</p>
+                    <p>@user.City, @user.State @user.PostalCode</p>
+                </div>
+            }
+            else
+            {
+                <p style="color: #94a3b8; font-style: italic;">No address on file</p>
+            }
+        </div>
+
+        <!-- User Role -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-user-shield"></i> User Role</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Current Role</div>
+                    <div class="info-value">@(ViewBag.UserRole ?? "No Role Assigned")</div>
+                </div>
+            </div>
+
+            <form asp-controller="Admin" asp-action="UpdateUserRole" method="post" class="role-form">
+                <input type="hidden" name="userId" value="@user.Id" />
+
+                <div class="form-group">
+                    <label for="newRole">Change Role</label>
+                    <select name="newRole" id="newRole" class="form-control">
+                        <option value="">Select a role...</option>
+                        @if (ViewBag.CurrentUserRole == "Dev")
+                        {
+                            <option value="Admin">Admin</option>
+                            <option value="User">User</option>
+                            <option value="Dev">Dev</option>
+                        }
+                        else if (ViewBag.CurrentUserRole == "Admin")
+                        {
+                            <option value="Admin">Admin</option>
+                            <option value="User">User</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Update Role</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Statistics -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-chart-simple"></i> Statistics</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Total Orders</div>
+                    <div class="info-value">@(orders?.Count ?? 0)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Total Returns</div>
+                    <div class="info-value">@(returns?.Count ?? 0)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">@((DateTime.Now - user.DateJoined).Days) days</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Preferences -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-bell"></i> Notification Preferences</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Email Notifications</div>
+                    <div class="info-value">@(user.EmailNotifications ? "✓ Enabled" : "✗ Disabled")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">SMS Notifications</div>
+                    <div class="info-value">@(user.SMSNotifications ? "✓ Enabled" : "✗ Disabled")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Promotional Emails</div>
+                    <div class="info-value">@(user.PromotionalEmails ? "✓ Enabled" : "✗ Disabled")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order History -->
+        <div class="detail-section" style="grid-column: 1 / -1;">
+            <h2><i class="fa-solid fa-shopping-bag"></i> Order History</h2>
+
+            @if (orders != null && orders.Any())
+            {
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in orders.Take(10))
+                            {
+                                <tr>
+                                    <td class="order-number">#@order.OrderNumber</td>
+                                    <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@order.OrderItems?.Count items</td>
+                                    <td class="total-amount">R @order.TotalAmount.ToString("N2")</td>
+                                    <td>
+                                        <span class="status-badge status-@order.Status.ToLower()">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/Admin/OrderDetails/@order.Id" class="btn-view">
+                                            <i class="fa-solid fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No orders yet</p>
+                </div>
+            }
+        </div>
+
+        <!-- Return History -->
+        <div class="detail-section" style="grid-column: 1 / -1;">
+            <h2><i class="fa-solid fa-rotate-left"></i> Return History</h2>
+
+            @if (returns != null && returns.Any())
+            {
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Return #</th>
+                                <th>Order #</th>
+                                <th>Product</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                                <th>Refund</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var returnReq in returns.Take(10))
+                            {
+                                <tr>
+                                    <td class="order-number">#@returnReq.Id</td>
+                                    <td>#@returnReq.Order?.OrderNumber</td>
+                                    <td>@returnReq.OrderItem?.ProductName</td>
+                                    <td>@returnReq.ReturnReason</td>
+                                    <td>@returnReq.RequestDate.ToString("MMM dd, yyyy")</td>
+                                    <td class="total-amount">R @returnReq.RefundAmount.ToString("N2")</td>
+                                    <td>
+                                        <span class="status-badge status-@returnReq.Status.ToLower()">
+                                            @returnReq.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/Admin/ReturnDetails/@returnReq.Id" class="btn-view">
+                                            <i class="fa-solid fa-eye"></i> Review
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No returns yet</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

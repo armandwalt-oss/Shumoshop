@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Payment Cancelled";
+    var order = ViewBag.Order as WebApplication1.Models.Order;
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <!-- Cancel Icon -->
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-x-octagon-fill text-secondary" viewBox="0 0 16 16">
+                            <path d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zm-6.106 4.5L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 1 1 .708-.708z" />
+                        </svg>
+                    </div>
+
+                    <h2 class="mb-3">Payment Cancelled</h2>
+                    <p class="lead mb-4">You've cancelled the payment process.</p>
+
+                    @if (order != null)
+                    {
+                        <div class="bg-light p-4 rounded mb-4">
+                            <h5 class="mb-3">Order Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 text-start">
+                                    <p class="mb-2"><strong>Order Number:</strong></p>
+                                    <p class="mb-2"><strong>Total Amount:</strong></p>
+                                    <p class="mb-2"><strong>Status:</strong></p>
+                                </div>
+                                <div class="col-md-6 text-start">
+                                    <p class="mb-2">@order.OrderNumber</p>
+                                    <p class="mb-2"><strong>R @order.TotalAmount.ToString("N2")</strong></p>
+                                    <p class="mb-2"><span class="badge bg-secondary">Cancelled</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-secondary" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Your order has been saved but not paid for. Your cart items remain available.
+                        </div>
+                    }
+
+                    <!-- What You Can Do -->
+                    <div class="text-start mb-4">
+                        <h6>What would you like to do?</h6>
+                        <ul class="text-muted">
+                            <li>Try the payment again with different payment method</li>
+                            <li>Return to your cart to review items</li>
+                            <li>Continue shopping and checkout later</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        @if (order != null)
+                        {
+                            <a href="@Url.Action("Process", "Payment", new { orderId = order.Id })"
+                               class="btn btn-primary btn-lg px-5">
+                                Try Payment Again
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Cart")" class="btn btn-primary btn-lg px-5">
+                                View Cart
+                            </a>
+                        }
+                        <a href="@Url.Action("Index", "Shop")" class="btn btn-outline-secondary btn-lg px-5">
+                            Continue Shopping
+                        </a>
+                    </div>
+
+                    <p class="text-muted mt-4 small">
+                        Need assistance? <a href="@Url.Action("Index", "ContactUs")">Contact us</a> - we're here to help!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

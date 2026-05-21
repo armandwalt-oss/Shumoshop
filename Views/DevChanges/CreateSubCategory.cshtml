@@ -1,0 +1,101 @@
+﻿@model WebApplication1.Models.SubCategory
+
+@{
+    ViewData["Title"] = "Create SubCategory";
+}
+
+<link rel="stylesheet" href="~/css/DevChanges.css" />
+
+<div class="manage-container">
+    <a asp-action="Index" asp-route-section="subcategories" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to SubCategories
+    </a>
+
+    <div class="page-header">
+        <i class="fas fa-plus-circle"></i>
+        <h1>Create New SubCategory</h1>
+    </div>
+
+    <p class="subtitle">Add a new subcategory under a parent category</p>
+
+    <div class="divider"></div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="create-form-container">
+        <form asp-action="CreateSubCategory" method="post">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Name"><i class="fas fa-tag"></i> SubCategory Name *</label>
+                    <input asp-for="Name" class="form-control" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="CategoryId"><i class="fas fa-folder"></i> Parent Category *</label>
+                    <select asp-for="CategoryId" class="form-control" required>
+                        <option value="">Select Parent Category</option>
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="IconName"><i class="fas fa-icons"></i> Icon Name *</label>
+                    <input asp-for="IconName" class="form-control" placeholder="fa-car" required />
+                    <small class="form-text">Use FontAwesome icon names (e.g., fa-car, fa-anchor)</small>
+                    <span asp-validation-for="IconName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DisplayOrder"><i class="fas fa-sort-numeric-up"></i> Display Order *</label>
+                    <input asp-for="DisplayOrder" type="number" class="form-control" required />
+                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label asp-for="Description"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-plus"></i> Create SubCategory
+                </button>
+                <a asp-action="Index" asp-route-section="subcategories" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="icon-preview-card">
+        <h3><i class="fas fa-eye"></i> Icon Preview</h3>
+        <div class="icon-preview-display">
+            <i class="fas fa-car" id="iconPreview"></i>
+        </div>
+        <p class="icon-preview-text">Your icon will appear like this</p>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.querySelector('input[name="IconName"]').addEventListener('input', function(e) {
+            const iconPreview = document.getElementById('iconPreview');
+            iconPreview.className = 'fas ' + e.target.value;
+        });
+    </script>
+}

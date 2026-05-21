@@ -1,0 +1,209 @@
+﻿@model WebApplication1.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <span>Profile</span>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar-large">
+            @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+            {
+                <img src="@Model.ProfilePictureUrl" alt="@Model.FullName" />
+            }
+            else
+            {
+                <i class="fa-solid fa-user"></i>
+            }
+        </div>
+        <div class="profile-header-info">
+            <h1>@Model.FullName</h1>
+            <p class="profile-email">@Model.Email</p>
+            <p class="profile-member-since">
+                <i class="fa-solid fa-calendar-check"></i>
+                Member since @Model.DateJoined.ToString("MMMM dd, yyyy")
+            </p>
+        </div>
+        <div class="profile-header-actions">
+            <a asp-controller="Account" asp-action="EditProfile" class="btn-edit-profile-main">
+                <i class="fa-solid fa-pen-to-square"></i>
+                Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profile-content-grid">
+        <!-- Personal Information -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h2><i class="fa-solid fa-user"></i> Personal Information</h2>
+                <a asp-controller="Account" asp-action="EditProfile" class="edit-link">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+            </div>
+            <div class="profile-info-grid">
+                <div class="info-item">
+                    <label>First Name</label>
+                    <p>@Model.Name</p>
+                </div>
+                <div class="info-item">
+                    <label>Last Name</label>
+                    <p>@(string.IsNullOrEmpty(Model.Surname) ? "Not provided" : Model.Surname)</p>
+                </div>
+                <div class="info-item">
+                    <label>Email Address</label>
+                    <p>@Model.Email</p>
+                </div>
+                <div class="info-item">
+                    <label>Phone Number</label>
+                    <p>@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</p>
+                </div>
+                <div class="info-item">
+                    <label>Username</label>
+                    <p>@Model.UserName</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h2><i class="fa-solid fa-location-dot"></i> Address</h2>
+                <a asp-controller="Account" asp-action="EditProfile" class="edit-link">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+            </div>
+            <div class="profile-info-grid">
+                <div class="info-item full-width">
+                    <label>Street Address</label>
+                    <p>@(string.IsNullOrEmpty(Model.StreetAddress) ? "Not provided" : Model.StreetAddress)</p>
+                </div>
+                <div class="info-item">
+                    <label>City</label>
+                    <p>@(string.IsNullOrEmpty(Model.City) ? "Not provided" : Model.City)</p>
+                </div>
+                <div class="info-item">
+                    <label>State/Province</label>
+                    <p>@(string.IsNullOrEmpty(Model.State) ? "Not provided" : Model.State)</p>
+                </div>
+                <div class="info-item">
+                    <label>Postal Code</label>
+                    <p>@(string.IsNullOrEmpty(Model.PostalCode) ? "Not provided" : Model.PostalCode)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferences -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h2><i class="fa-solid fa-sliders"></i> Preferences</h2>
+                <a asp-controller="Account" asp-action="Settings" class="edit-link">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+            </div>
+            <div class="preferences-list">
+                <div class="preference-item">
+                    <div class="preference-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div class="preference-info">
+                        <h4>Email Notifications</h4>
+                        <p>@(Model.EmailNotifications ? "Enabled" : "Disabled")</p>
+                    </div>
+                    <div class="preference-status">
+                        @if (Model.EmailNotifications)
+                        {
+                            <span class="status-enabled"><i class="fa-solid fa-check"></i></span>
+                        }
+                        else
+                        {
+                            <span class="status-disabled"><i class="fa-solid fa-times"></i></span>
+                        }
+                    </div>
+                </div>
+
+                <div class="preference-item">
+                    <div class="preference-icon">
+                        <i class="fa-solid fa-message"></i>
+                    </div>
+                    <div class="preference-info">
+                        <h4>SMS Notifications</h4>
+                        <p>@(Model.SMSNotifications ? "Enabled" : "Disabled")</p>
+                    </div>
+                    <div class="preference-status">
+                        @if (Model.SMSNotifications)
+                        {
+                            <span class="status-enabled"><i class="fa-solid fa-check"></i></span>
+                        }
+                        else
+                        {
+                            <span class="status-disabled"><i class="fa-solid fa-times"></i></span>
+                        }
+                    </div>
+                </div>
+
+                <div class="preference-item">
+                    <div class="preference-icon">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div class="preference-info">
+                        <h4>Promotional Emails</h4>
+                        <p>@(Model.PromotionalEmails ? "Enabled" : "Disabled")</p>
+                    </div>
+                    <div class="preference-status">
+                        @if (Model.PromotionalEmails)
+                        {
+                            <span class="status-enabled"><i class="fa-solid fa-check"></i></span>
+                        }
+                        else
+                        {
+                            <span class="status-disabled"><i class="fa-solid fa-times"></i></span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Security</h2>
+            </div>
+            <div class="security-list">
+                <div class="security-item">
+                    <div class="security-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div class="security-info">
+                        <h4>Password</h4>
+                        <p>Last changed: @(Model.LastLoginDate?.ToString("MMM dd, yyyy") ?? "N/A")</p>
+                    </div>
+                    <div class="security-action">
+                        <a asp-controller="Account" asp-action="ChangePassword" class="btn-change-password">
+                            Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}

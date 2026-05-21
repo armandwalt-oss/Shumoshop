@@ -1,0 +1,294 @@
+﻿@model WebApplication1.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "My Account";
+    var user = ViewBag.User as ApplicationUser;
+    var recentOrders = ViewBag.RecentOrders as List<Order>;
+    var wishlistCount = (int)ViewBag.WishlistCount;
+    var addressCount = (int)ViewBag.AddressCount;
+    var totalOrders = (int)ViewBag.TotalOrders;
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Header -->
+    <div class="account-header">
+        <div class="header-content">
+            <div class="user-avatar">
+                @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                {
+                    <img src="@user.ProfilePictureUrl" alt="@user.FullName" />
+                }
+                else
+                {
+                    <i class="fa-solid fa-user"></i>
+                }
+            </div>
+            <div class="user-info">
+                <h1>Welcome back, @user.Name!</h1>
+                <p>Manage your account, orders, and settings</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-box"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@totalOrders</h3>
+                <p>Total Orders</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@wishlistCount</h3>
+                <p>Wishlist Items</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@addressCount</h3>
+                <p>Saved Addresses</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@user.DateJoined.ToString("MMM yyyy")</h3>
+                <p>Member Since</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+        <!-- Quick Actions -->
+        <div class="dashboard-card quick-actions-card">
+            <h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+            <div class="action-buttons">
+                <a asp-controller="Shop" asp-action="Index" class="action-btn">
+                    <i class="fa-solid fa-shopping-bag"></i>
+                    <span>Continue Shopping</span>
+                </a>
+                <a asp-controller="Account" asp-action="Orders" class="action-btn">
+                    <i class="fa-solid fa-box"></i>
+                    <span>View Orders</span>
+                </a>
+                <a asp-controller="Account" asp-action="MyReturns" class="action-btn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>My Returns</span>
+                </a>
+                <a asp-controller="Wishlist" asp-action="Index" class="action-btn">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>My Wishlist</span>
+                </a>
+                <a asp-controller="Account" asp-action="EditProfile" class="action-btn">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <span>Edit Profile</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="dashboard-card recent-orders-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h2>
+                <a asp-controller="Account" asp-action="Orders" class="view-all-link">View All</a>
+            </div>
+
+            @if (recentOrders != null && recentOrders.Any())
+            {
+                <div class="orders-list">
+                    @foreach (var order in recentOrders)
+                    {
+                        <div class="order-item">
+                            <div class="order-info">
+                                <div class="order-number">
+                                    <i class="fa-solid fa-hashtag"></i>
+                                    @order.OrderNumber
+                                </div>
+                                <div class="order-date">
+                                    @order.OrderDate.ToString("MMM dd, yyyy")
+                                </div>
+                            </div>
+                            <div class="order-status">
+                                <span class="status-badge status-@order.Status.ToLower()">
+                                    @order.Status
+                                </span>
+                            </div>
+                            <div class="order-total">
+                                R @order.TotalAmount.ToString("N2")
+                            </div>
+                            <div class="order-action">
+                                <a asp-controller="Account" asp-action="OrderDetails" asp-route-id="@order.Id" class="btn-view-order">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No orders yet</p>
+                    <a asp-controller="Shop" asp-action="Index" class="btn-shop-now">Start Shopping</a>
+                </div>
+            }
+        </div>
+
+        <!-- Account Overview -->
+        <div class="dashboard-card account-overview-card">
+            <h2><i class="fa-solid fa-user-circle"></i> Account Overview</h2>
+            <div class="overview-list">
+                <div class="overview-item">
+                    <div class="overview-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div class="overview-content">
+                        <label>Email</label>
+                        <p>@user.Email</p>
+                    </div>
+                </div>
+
+                <div class="overview-item">
+                    <div class="overview-icon">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div class="overview-content">
+                        <label>Phone</label>
+                        <p>@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not provided" : user.PhoneNumber)</p>
+                    </div>
+                </div>
+
+                <div class="overview-item">
+                    <div class="overview-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="overview-content">
+                        <label>Address</label>
+                        <p>
+                            @if (!string.IsNullOrEmpty(user.StreetAddress))
+                            {
+                                @user.StreetAddress @user.City
+                            }
+                            else
+                            {
+                                <text>Not provided</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overview-item">
+                    <div class="overview-icon">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="overview-content">
+                        <label>Notifications</label>
+                        <p>@(user.EmailNotifications ? "Email notifications enabled" : "Email notifications disabled")</p>
+                    </div>
+                </div>
+            </div>
+
+            <a asp-controller="Account" asp-action="EditProfile" class="btn-edit-profile">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+            </a>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="dashboard-card settings-card">
+            <h2><i class="fa-solid fa-gear"></i> Settings & Security</h2>
+            <div class="settings-list">
+                <a asp-controller="Account" asp-action="EditProfile" class="setting-item">
+                    <div class="setting-icon">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div class="setting-content">
+                        <h4>Edit Profile</h4>
+                        <p>Update your personal information</p>
+                    </div>
+                    <div class="setting-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Account" asp-action="ChangePassword" class="setting-item">
+                    <div class="setting-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div class="setting-content">
+                        <h4>Change Password</h4>
+                        <p>Update your password</p>
+                    </div>
+                    <div class="setting-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Account" asp-action="MyReturns" class="setting-item">
+                    <div class="setting-icon">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <div class="setting-content">
+                        <h4>My Returns</h4>
+                        <p>View and manage return requests</p>
+                    </div>
+                    <div class="setting-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Account" asp-action="Addresses" class="setting-item">
+                    <div class="setting-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="setting-content">
+                        <h4>Manage Addresses</h4>
+                        <p>Add or edit your addresses</p>
+                    </div>
+                    <div class="setting-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Account" asp-action="Settings" class="setting-item">
+                    <div class="setting-icon">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="setting-content">
+                        <h4>Notifications</h4>
+                        <p>Manage your notification preferences</p>
+                    </div>
+                    <div class="setting-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+}

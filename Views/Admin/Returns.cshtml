@@ -1,0 +1,155 @@
+﻿@model List<WebApplication1.Models.ReturnRequest>
+@{
+    ViewData["Title"] = "Manage Returns";
+    var selectedStatus = ViewBag.SelectedStatus as string;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-rotate-left"></i>
+            Manage Returns
+        </h1>
+        <p>Review and process customer return requests</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="/Admin/Returns" class="filter-tab @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")">
+            <i class="fa-solid fa-list"></i>
+            All Returns
+        </a>
+        <a href="/Admin/Returns?status=Pending" class="filter-tab @(selectedStatus == "Pending" ? "active" : "")">
+            <i class="fa-solid fa-clock"></i>
+            Pending
+        </a>
+        <a href="/Admin/Returns?status=Approved" class="filter-tab @(selectedStatus == "Approved" ? "active" : "")">
+            <i class="fa-solid fa-check"></i>
+            Approved
+        </a>
+        <a href="/Admin/Returns?status=Rejected" class="filter-tab @(selectedStatus == "Rejected" ? "active" : "")">
+            <i class="fa-solid fa-times"></i>
+            Rejected
+        </a>
+        <a href="/Admin/Returns?status=Received" class="filter-tab @(selectedStatus == "Received" ? "active" : "")">
+            <i class="fa-solid fa-box"></i>
+            Received
+        </a>
+        <a href="/Admin/Returns?status=Refunded" class="filter-tab @(selectedStatus == "Refunded" ? "active" : "")">
+            <i class="fa-solid fa-dollar-sign"></i>
+            Refunded
+        </a>
+    </div>
+
+    <!-- Search Bar (Reusable Partial) -->
+    @await Html.PartialAsync("_TableSearchBar",
+    ("Search by return #, customer, email, order #, product, or date...",
+    Model?.Count ?? 0,
+    "#tableContainer",
+    ".return-row",
+    ".return-id, .return-customer, .return-order, .return-product, .return-date",
+    "#noResults"))
+
+    <!-- Returns Table -->
+    <div class="dashboard-section">
+        @if (Model != null && Model.Any())
+        {
+            <div class="orders-table-container" id="tableContainer">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Return #</th>
+                            <th>Customer</th>
+                            <th>Order #</th>
+                            <th>Product</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Refund</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var returnReq in Model)
+                        {
+                            <tr class="return-row">
+                                <td class="order-number return-id">#@returnReq.Id</td>
+
+                                <td class="return-customer">
+                                    <div class="customer-info">
+                                        <strong>@returnReq.User?.Name</strong>
+                                        <small>@returnReq.User?.Email</small>
+                                    </div>
+                                </td>
+
+                                <td class="return-order">#@returnReq.Order?.OrderNumber</td>
+
+                                <td class="return-product">
+                                    <div class="product-mini">
+                                        <img src="@(returnReq.OrderItem?.ImageUrl ?? "/images/no-image.jpg")"
+                                             alt="@returnReq.OrderItem?.ProductName" />
+                                        <span>@returnReq.OrderItem?.ProductName</span>
+                                    </div>
+                                </td>
+
+                                <td class="return-reason">@returnReq.ReturnReason</td>
+
+                                <td class="return-date">@returnReq.RequestDate.ToString("MMM dd, yyyy")</td>
+
+
+                                <td class="total-amount">R @returnReq.RefundAmount.ToString("N2")</td>
+
+                                <td class="return-status">
+                                    <span class="status-badge status-@returnReq.Status.ToLower()">
+                                        @returnReq.Status
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <a href="/Admin/ReturnDetails/@returnReq.Id" class="btn-view">
+                                        <i class="fa-solid fa-eye"></i> Review
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state for search -->
+            <div id="noResults" class="empty-state" style="display:none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>No returns found</h3>
+                <p>Try adjusting your search terms</p>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>No returns found</h3>
+                <p>@(string.IsNullOrEmpty(selectedStatus) ? "There are no return requests yet" : $"No {selectedStatus} returns found")</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelector('.success-notification').style.display = 'none';
+        }, 5000);
+    </script>
+}

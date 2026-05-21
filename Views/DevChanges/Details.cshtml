@@ -1,0 +1,190 @@
+﻿@model WebApplication1.Models.Product
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<link rel="stylesheet" href="~/css/DevChanges.css" />
+
+<div class="manage-container">
+    <a asp-action="Index" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+
+    <div class="page-header">
+        <i class="fas fa-box"></i>
+        <h1>Product Details</h1>
+    </div>
+
+    <p class="subtitle">View and edit product information</p>
+
+    <div class="divider"></div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="details-grid">
+        <!-- Product Information Card -->
+        <div class="details-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Product Information</h3>
+                <form asp-action="ToggleActive" method="post" style="display: inline;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    @if (Model.InStock)
+                    {
+                        <button type="submit" class="btn-toggle btn-active" onclick="return confirm('Deactivate this product?')">
+                            <i class="fas fa-toggle-on"></i> Active
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn-toggle btn-inactive" onclick="return confirm('Activate this product?')">
+                            <i class="fas fa-toggle-off"></i> Inactive
+                        </button>
+                    }
+                </form>
+            </div>
+
+            <form asp-action="UpdateProduct" method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CreatedDate" />
+                <input type="hidden" asp-for="InStock" />
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Product Name</label>
+                        <input type="text" asp-for="Name" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-barcode"></i> SKU</label>
+                        <input type="text" asp-for="SKU" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-dollar-sign"></i> Price</label>
+                        <input type="number" asp-for="Price" class="form-control" step="0.01" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-boxes"></i> Stock Quantity</label>
+                        <input type="number" asp-for="StockQuantity" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-list"></i> Category</label>
+                        <select asp-for="CategoryId" class="form-control" required>
+                            <option value="">Select Category</option>
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-list-ul"></i> Sub Category</label>
+                        <select asp-for="SubCategoryId" class="form-control" required>
+                            <option value="">Select Sub Category</option>
+                            @foreach (var subCategory in ViewBag.SubCategories)
+                            {
+                                <option value="@subCategory.Id" selected="@(subCategory.Id == Model.SubCategoryId)">@subCategory.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-image"></i> Image URL</label>
+                        <input type="text" asp-for="ImageUrl" class="form-control" />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-align-left"></i> Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-checkboxes">
+                    <label class="checkbox-label">
+                        <input type="checkbox" asp-for="IsFeatured" />
+                        <span><i class="fas fa-star"></i> Featured Product</span>
+                    </label>
+
+                    <label class="checkbox-label">
+                        <input type="checkbox" asp-for="IsNewArrival" />
+                        <span><i class="fas fa-plus-circle"></i> New Arrival</span>
+                    </label>
+
+                    <label class="checkbox-label">
+                        <input type="checkbox" asp-for="IsSpecial" />
+                        <span><i class="fas fa-fire"></i> Special Offer</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Product Preview Card -->
+        <div class="details-card">
+            <div class="card-header">
+                <h3><i class="fas fa-eye"></i> Product Preview</h3>
+            </div>
+
+            <div class="product-preview">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.Name" class="preview-image" onerror="this.src='/images/no-image.jpg'" />
+                }
+                else
+                {
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>No Image</p>
+                    </div>
+                }
+
+                <div class="preview-info">
+                    <h4>@Model.Name</h4>
+                    <p class="preview-sku">SKU: @Model.SKU</p>
+                    <p class="preview-price">R @Model.Price.ToString("N2")</p>
+                    <p class="preview-category">@Model.Category?.Name / @Model.SubCategory?.Name</p>
+                    <p class="preview-stock">Stock: @Model.StockQuantity units</p>
+
+                    <div class="preview-badges">
+                        @if (Model.IsFeatured)
+                        {
+                            <span class="badge badge-featured">Featured</span>
+                        }
+                        @if (Model.IsNewArrival)
+                        {
+                            <span class="badge badge-new">New</span>
+                        }
+                        @if (Model.IsSpecial)
+                        {
+                            <span class="badge badge-special">Special</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

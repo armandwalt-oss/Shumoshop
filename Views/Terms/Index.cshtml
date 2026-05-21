@@ -1,0 +1,490 @@
+﻿@{
+    ViewData["Title"] = "Terms & Conditions";
+}
+
+<style>
+    .terms-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        background: #ffffff;
+    }
+
+    .terms-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 30px;
+        border-bottom: 3px solid #3b82f6;
+    }
+
+    .terms-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 15px 0;
+    }
+
+    .terms-header .last-updated {
+        color: #64748b;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .terms-intro {
+        background: #f8fafc;
+        padding: 30px;
+        border-radius: 12px;
+        border-left: 4px solid #3b82f6;
+        margin-bottom: 40px;
+    }
+
+    .terms-intro p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+
+    .terms-section {
+        margin-bottom: 40px;
+    }
+
+    .terms-section h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .terms-section h2 i {
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+
+    .terms-section h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 25px 0 15px 0;
+    }
+
+    .terms-section p {
+        color: #475569;
+        line-height: 1.8;
+        margin: 15px 0;
+        font-size: 1rem;
+    }
+
+    .terms-section ul,
+    .terms-section ol {
+        color: #475569;
+        line-height: 1.8;
+        margin: 15px 0;
+        padding-left: 30px;
+    }
+
+    .terms-section li {
+        margin: 10px 0;
+    }
+
+    .important-notice {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 20px 25px;
+        border-radius: 8px;
+        margin: 25px 0;
+    }
+
+    .important-notice h4 {
+        color: #92400e;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .important-notice p {
+        color: #92400e;
+        margin: 0;
+    }
+
+    .contact-box {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-top: 50px;
+        text-align: center;
+    }
+
+    .contact-box h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 15px 0;
+    }
+
+    .contact-box p {
+        color: white;
+        margin: 10px 0;
+        font-size: 1.05rem;
+    }
+
+    .contact-box a {
+        color: white;
+        text-decoration: underline;
+    }
+
+    .contact-box a:hover {
+        color: #dbeafe;
+    }
+
+    .section-number {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        background: #3b82f6;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 35px;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 30px;
+        transition: all 0.3s;
+    }
+
+    .back-link:hover {
+        color: #2563eb;
+        gap: 12px;
+    }
+
+    @@media (max-width: 768px) {
+        .terms-container {
+            padding: 40px 15px;
+        }
+
+        .terms-header h1 {
+            font-size: 2rem;
+        }
+
+        .terms-section h2 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="terms-container">
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Home
+    </a>
+
+    <div class="terms-header">
+        <h1>Terms & Conditions</h1>
+        <div class="last-updated">
+            <i class="fa-regular fa-calendar"></i>
+            <span>Last Updated: @DateTime.Now.ToString("MMMM dd, yyyy")</span>
+        </div>
+    </div>
+
+    <div class="terms-intro">
+        <p>
+            Welcome to ShumoShop. By accessing and using our website and services, you agree to be bound by these Terms and Conditions.
+            Please read them carefully before making any purchase or using our services. If you do not agree with any part of these terms,
+            please do not use our website or services.
+        </p>
+    </div>
+
+    <!-- Section 1: General Terms -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">1</span>
+            <span>General Terms</span>
+        </h2>
+        <p>
+            These Terms and Conditions govern your use of the ShumoShop website and the purchase of products through our platform.
+            By placing an order, you warrant that you are at least 18 years of age and are legally capable of entering into binding contracts.
+        </p>
+        <p>
+            We reserve the right to modify these Terms and Conditions at any time. Changes will be effective immediately upon posting to
+            the website. Your continued use of the website following the posting of changes constitutes your acceptance of such changes.
+        </p>
+    </div>
+
+    <!-- Section 2: Product Information -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">2</span>
+            <span>Product Information & Pricing</span>
+        </h2>
+        <p>
+            We strive to provide accurate product descriptions, specifications, and pricing. However, we do not warrant that product
+            descriptions, pricing, or other content on our website is accurate, complete, reliable, current, or error-free.
+        </p>
+        <ul>
+            <li>All prices are listed in South African Rand (ZAR) and are subject to change without notice</li>
+            <li>Prices include VAT unless otherwise stated</li>
+            <li>Product images are for illustration purposes and may differ from the actual product</li>
+            <li>Product availability is subject to stock levels</li>
+            <li>We reserve the right to limit quantities purchased per person or per order</li>
+        </ul>
+
+        <div class="important-notice">
+            <h4>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Important Notice
+            </h4>
+            <p>
+                In the event of a pricing error, we reserve the right to cancel any orders placed at the incorrect price and
+                will notify you of the cancellation.
+            </p>
+        </div>
+    </div>
+
+    <!-- Section 3: Orders & Payment -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">3</span>
+            <span>Orders & Payment</span>
+        </h2>
+
+        <h3>Order Acceptance</h3>
+        <p>
+            Your order constitutes an offer to purchase products from us. All orders are subject to acceptance by ShumoShop.
+            We reserve the right to refuse or cancel any order for any reason, including but not limited to:
+        </p>
+        <ul>
+            <li>Product unavailability</li>
+            <li>Errors in product or pricing information</li>
+            <li>Suspected fraudulent or unauthorized transactions</li>
+            <li>Issues with payment authorization</li>
+        </ul>
+
+        <h3>Payment Terms</h3>
+        <p>
+            Payment must be made in full at the time of purchase unless otherwise arranged. We accept the following payment methods:
+        </p>
+        <ul>
+            <li>Credit and debit cards (Visa, Mastercard)</li>
+            <li>Electronic Funds Transfer (EFT)</li>
+            <li>Approved credit accounts (subject to credit approval)</li>
+        </ul>
+        <p>
+            All payments are processed securely. We do not store credit card information on our servers. By providing payment
+            information, you represent and warrant that you are authorized to use the payment method.
+        </p>
+    </div>
+
+    <!-- Section 4: Shipping & Delivery -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">4</span>
+            <span>Shipping & Delivery</span>
+        </h2>
+        <p>
+            We strive to process and ship orders promptly. Delivery times are estimates and not guaranteed. Shipping costs
+            and delivery timeframes are calculated at checkout based on:
+        </p>
+        <ul>
+            <li>Delivery location</li>
+            <li>Product weight and dimensions</li>
+            <li>Selected shipping method</li>
+            <li>Stock availability</li>
+        </ul>
+
+        <h3>Delivery Responsibilities</h3>
+        <p>
+            Title and risk of loss pass to you upon delivery to the carrier. You are responsible for:
+        </p>
+        <ul>
+            <li>Providing accurate delivery address information</li>
+            <li>Being available to receive deliveries or arranging alternative receipt</li>
+            <li>Inspecting goods upon delivery and reporting damages within 48 hours</li>
+        </ul>
+
+        <p>
+            We are not responsible for delays caused by:
+        </p>
+        <ul>
+            <li>Courier service delays</li>
+            <li>Incorrect delivery information provided by customer</li>
+            <li>Acts of God, strikes, or other events beyond our control</li>
+        </ul>
+    </div>
+
+    <!-- Section 5: Returns & Refunds -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">5</span>
+            <span>Returns & Refunds</span>
+        </h2>
+        <p>
+            We want you to be completely satisfied with your purchase. Our returns policy is designed to ensure fair treatment
+            for both our customers and our business.
+        </p>
+
+        <h3>Return Eligibility</h3>
+        <p>Products may be returned within 30 days of delivery if:</p>
+        <ul>
+            <li>The product is in its original condition and packaging</li>
+            <li>All accessories, manuals, and components are included</li>
+            <li>The product has not been installed, used, or modified</li>
+            <li>You have proof of purchase (invoice or receipt)</li>
+        </ul>
+
+        <h3>Non-Returnable Items</h3>
+        <p>The following items cannot be returned:</p>
+        <ul>
+            <li>Electrical items that have been installed or used</li>
+            <li>Custom-ordered or special-order products</li>
+            <li>Opened liquids or chemicals</li>
+            <li>Products showing signs of wear or damage due to use</li>
+        </ul>
+
+        <h3>Refund Process</h3>
+        <p>
+            Once your return is received and inspected, we will notify you of the approval or rejection of your refund.
+            If approved, refunds will be processed to the original payment method within 7-10 business days.
+        </p>
+
+        <p>
+            <strong>Note:</strong> Shipping costs are non-refundable. Return shipping costs are the responsibility
+            of the customer unless the return is due to our error or a defective product.
+        </p>
+
+        <p>
+            For complete details, please visit our <a href="/Returns">Returns Policy</a> page.
+        </p>
+    </div>
+
+    <!-- Section 6: Warranty -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">6</span>
+            <span>Warranty & Guarantees</span>
+        </h2>
+        <p>
+            Products sold by ShumoShop come with manufacturer warranties where applicable. Warranty terms and conditions
+            are determined by the manufacturer and are included with the product documentation.
+        </p>
+        <p>
+            We act as an intermediary between the customer and manufacturer for warranty claims. Warranty service is provided
+            by the manufacturer or authorized service centers, not by ShumoShop directly.
+        </p>
+
+        <div class="important-notice">
+            <h4>
+                <i class="fa-solid fa-info-circle"></i>
+                Consumer Protection Act
+            </h4>
+            <p>
+                Your statutory rights under the South African Consumer Protection Act are not affected by these terms.
+                Nothing in these terms excludes or limits our liability for death or personal injury caused by negligence,
+                fraud, or any other matter for which it would be illegal to exclude or limit liability.
+            </p>
+        </div>
+    </div>
+
+    <!-- Section 7: Limitation of Liability -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">7</span>
+            <span>Limitation of Liability</span>
+        </h2>
+        <p>
+            To the maximum extent permitted by law, ShumoShop shall not be liable for:
+        </p>
+        <ul>
+            <li>Indirect, incidental, special, or consequential damages</li>
+            <li>Loss of profits, revenue, data, or use</li>
+            <li>Damage to vehicles or equipment resulting from product installation or use</li>
+            <li>Claims arising from improper installation, maintenance, or use of products</li>
+        </ul>
+        <p>
+            Our total liability for any claim arising from your use of our website or products shall not exceed
+            the amount you paid for the specific product giving rise to the claim.
+        </p>
+    </div>
+
+    <!-- Section 8: Privacy & Data Protection -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">8</span>
+            <span>Privacy & Data Protection</span>
+        </h2>
+        <p>
+            We are committed to protecting your privacy and personal information in accordance with the Protection of
+            Personal Information Act (POPIA). By using our website, you consent to:
+        </p>
+        <ul>
+            <li>Collection and processing of personal information necessary to fulfill orders</li>
+            <li>Use of contact information for order updates and customer service</li>
+            <li>Storage of order history and account information</li>
+            <li>Marketing communications (with your consent, which can be withdrawn at any time)</li>
+        </ul>
+        <p>
+            We will never sell or share your personal information with third parties except as necessary to process
+            and deliver your orders. For full details, please see our Privacy Policy.
+        </p>
+    </div>
+
+    <!-- Section 9: Intellectual Property -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">9</span>
+            <span>Intellectual Property</span>
+        </h2>
+        <p>
+            All content on this website, including but not limited to text, graphics, logos, images, product descriptions,
+            and software, is the property of ShumoShop or its content suppliers and is protected by South African and
+            international copyright laws.
+        </p>
+        <p>
+            You may not reproduce, distribute, modify, create derivative works of, publicly display, or exploit any of
+            the content without our express written permission.
+        </p>
+    </div>
+
+    <!-- Section 10: Governing Law -->
+    <div class="terms-section">
+        <h2>
+            <span class="section-number">10</span>
+            <span>Governing Law & Dispute Resolution</span>
+        </h2>
+        <p>
+            These Terms and Conditions are governed by the laws of the Republic of South Africa. Any disputes arising
+            from these terms or your use of our website shall be subject to the exclusive jurisdiction of the South African courts.
+        </p>
+        <p>
+            We encourage customers to contact us directly to resolve any issues before pursuing legal action. Most concerns
+            can be resolved quickly through direct communication with our customer service team.
+        </p>
+    </div>
+
+    <!-- Contact Box -->
+    <div class="contact-box">
+        <h3><i class="fa-solid fa-headset"></i> Questions About Our Terms?</h3>
+        <p>If you have any questions about these Terms & Conditions, please contact us:</p>
+        <p>
+            <i class="fa-solid fa-phone"></i> (012) 882-0844<br>
+            <i class="fa-solid fa-envelope"></i> <a href="mailto:info@@shumoshop.com">info@@shumoshop.com</a><br>
+            <i class="fa-solid fa-location-dot"></i> 138 Botha Avenue, Lyttleton, Centurion, 0014
+        </p>
+    </div>
+</div>

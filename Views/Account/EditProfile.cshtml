@@ -1,0 +1,156 @@
+﻿@model WebApplication1.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <a asp-controller="Account" asp-action="Profile">Profile</a>
+        <span>/</span>
+        <span>Edit Profile</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1><i class="fa-solid fa-user-pen"></i> Edit Profile</h1>
+            <p>Update your personal information and preferences</p>
+        </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div class="form-container">
+        <form asp-controller="Account" asp-action="EditProfile" method="post" class="profile-edit-form">
+            @Html.AntiForgeryToken()
+
+            <!-- Personal Information Section -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-user"></i> Personal Information</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Name">First Name *</label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter your first name" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Surname">Last Name *</label>
+                        <input asp-for="Surname" class="form-control" placeholder="Enter your last name" required />
+                        <span asp-validation-for="Surname" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email">Email Address *</label>
+                    <input asp-for="Email" class="form-control" type="email" placeholder="your.email@example.com" disabled />
+                    <small class="form-text">Email cannot be changed. Contact support if needed.</small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PhoneNumber">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="+27 XX XXX XXXX" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Address Section -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-location-dot"></i> Address</h2>
+
+                <div class="form-group">
+                    <label asp-for="StreetAddress">Street Address</label>
+                    <input asp-for="StreetAddress" class="form-control" placeholder="123 Main Street" />
+                    <span asp-validation-for="StreetAddress" class="text-danger"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="City">City</label>
+                        <input asp-for="City" class="form-control" placeholder="Johannesburg" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="State">State/Province</label>
+                        <input asp-for="State" class="form-control" placeholder="Gauteng" />
+                        <span asp-validation-for="State" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PostalCode">Postal Code</label>
+                    <input asp-for="PostalCode" class="form-control" placeholder="2000" />
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Notification Preferences Section -->
+            <div class="form-section">
+                <h2><i class="fa-solid fa-bell"></i> Notification Preferences</h2>
+
+                <div class="form-check-group">
+                    <div class="form-check">
+                        <input asp-for="EmailNotifications" type="checkbox" class="form-check-input" id="emailNotifications" />
+                        <label for="emailNotifications" class="form-check-label">
+                            <i class="fa-solid fa-envelope"></i>
+                            <div>
+                                <strong>Email Notifications</strong>
+                                <p>Receive order updates and account notifications via email</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="SMSNotifications" type="checkbox" class="form-check-input" id="smsNotifications" />
+                        <label for="smsNotifications" class="form-check-label">
+                            <i class="fa-solid fa-message"></i>
+                            <div>
+                                <strong>SMS Notifications</strong>
+                                <p>Receive important updates via SMS</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="PromotionalEmails" type="checkbox" class="form-check-input" id="promotionalEmails" />
+                        <label for="promotionalEmails" class="form-check-label">
+                            <i class="fa-solid fa-bullhorn"></i>
+                            <div>
+                                <strong>Promotional Emails</strong>
+                                <p>Receive special offers, discounts, and promotions</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Summary -->
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Save Changes
+                </button>
+                <a asp-controller="Account" asp-action="Profile" class="btn-cancel">
+                    <i class="fa-solid fa-times"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

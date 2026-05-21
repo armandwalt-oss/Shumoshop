@@ -1,0 +1,261 @@
+﻿@model WebApplication1.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<link href="~/css/account.css" rel="stylesheet" />
+
+<div class="account-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a asp-controller="Account" asp-action="Index">My Account</a>
+        <span>/</span>
+        <a asp-controller="Account" asp-action="Orders">Orders</a>
+        <span>/</span>
+        <span>Order #@Model.OrderNumber</span>
+    </div>
+
+    <!-- Order Header -->
+    <div class="order-details-header">
+        <div class="header-left">
+            <h1>
+                <i class="fa-solid fa-receipt"></i>
+                Order #@Model.OrderNumber
+            </h1>
+            <p class="order-date">
+                <i class="fa-solid fa-calendar"></i>
+                Placed on @Model.OrderDate.ToString("MMMM dd, yyyy 'at' h:mm tt")
+            </p>
+        </div>
+        <div class="header-right">
+            <span class="status-badge-large status-@Model.Status.ToLower()">
+                @Model.Status
+            </span>
+        </div>
+    </div>
+
+    <!-- Order Timeline -->
+    <div class="order-timeline">
+        <div class="timeline-item @(Model.OrderDate != null ? "completed" : "")">
+            <div class="timeline-icon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="timeline-content">
+                <h4>Order Placed</h4>
+                <p>@Model.OrderDate.ToString("MMM dd, yyyy")</p>
+            </div>
+        </div>
+
+        <div class="timeline-item @(Model.Status == "Processing" || Model.Status == "Shipped" || Model.Status == "Delivered" ? "completed" : "")">
+            <div class="timeline-icon">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+            <div class="timeline-content">
+                <h4>Processing</h4>
+                <p>@(Model.Status == "Pending" ? "Pending" : "In Progress")</p>
+            </div>
+        </div>
+
+        <div class="timeline-item @(Model.Status == "Shipped" || Model.Status == "Delivered" ? "completed" : "")">
+            <div class="timeline-icon">
+                <i class="fa-solid fa-truck"></i>
+            </div>
+            <div class="timeline-content">
+                <h4>Shipped</h4>
+                <p>@(Model.ShippedDate.HasValue? Model.ShippedDate.Value.ToString("MMM dd, yyyy") : "Not shipped yet")</p>
+            </div>
+        </div>
+
+        <div class="timeline-item @(Model.Status == "Delivered" ? "completed" : "")">
+            <div class="timeline-icon">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            <div class="timeline-content">
+                <h4>Delivered</h4>
+                <p>@(Model.DeliveredDate.HasValue? Model.DeliveredDate.Value.ToString("MMM dd, yyyy") : Model.EstimatedDelivery.HasValue ? "Est: " + Model.EstimatedDelivery.Value.ToString("MMM dd") : "Pending")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Content Grid -->
+    <div class="order-details-grid">
+        <!-- Order Items -->
+        <div class="order-section">
+            <h2><i class="fa-solid fa-box-open"></i> Order Items</h2>
+            <div class="order-items-list">
+                @foreach (var item in Model.OrderItems)
+                {
+                    <div class="order-item-card">
+                        <div class="item-image">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.ProductName" />
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-image"></i>
+                            }
+                        </div>
+                        <div class="item-details">
+                            <h3>@item.ProductName</h3>
+                            <p class="item-sku">SKU: @item.ProductSKU</p>
+                            <p class="item-quantity">Quantity: @item.Quantity</p>
+                        </div>
+                        <div class="item-price">
+                            <p class="unit-price">R @item.UnitPrice.ToString("N2") each</p>
+                            <p class="total-price">R @item.TotalPrice.ToString("N2")</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-section">
+            <h2><i class="fa-solid fa-file-invoice-dollar"></i> Order Summary</h2>
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>R @Model.Subtotal.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>R @Model.ShippingCost.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax</span>
+                    <span>R @Model.Tax.ToString("N2")</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total</span>
+                    <span>R @Model.TotalAmount.ToString("N2")</span>
+                </div>
+
+                <div class="payment-info">
+                    <h4><i class="fa-solid fa-credit-card"></i> Payment Information</h4>
+                    <p><strong>Method:</strong> @(string.IsNullOrEmpty(Model.PaymentMethod) ? "N/A" : Model.PaymentMethod)</p>
+                    <p><strong>Status:</strong> <span class="payment-status-@Model.PaymentStatus.ToLower()">@Model.PaymentStatus</span></p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionId))
+                    {
+                        <p><strong>Transaction ID:</strong> @Model.TransactionId</p>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                {
+                    <div class="tracking-info-card">
+                        <h4><i class="fa-solid fa-truck"></i> Tracking Information</h4>
+                        <p><strong>Tracking #:</strong> @Model.TrackingNumber</p>
+                        @if (!string.IsNullOrEmpty(Model.Carrier))
+                        {
+                            <p><strong>Carrier:</strong> @Model.Carrier</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.TrackingLink))
+                        {
+                            <a href="@Model.TrackingLink" target="_blank" class="btn-track-order">
+                                <i class="fa-solid fa-location-dot"></i>
+                                Track Package
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="no-tracking-link">
+                                <i class="fa-solid fa-info-circle"></i>
+                                Tracking information will be available soon
+                            </p>
+                        }
+                    </div>
+                }
+
+                <!-- Shipping Address -->
+                <div class="order-section">
+                    <h2><i class="fa-solid fa-truck"></i> Shipping Address</h2>
+                    <div class="address-card">
+                        <p class="address-name"><strong>@Model.CustomerName</strong></p>
+                        <p>@Model.ShippingAddress</p>
+                        <p>@Model.ShippingCity, @Model.ShippingState @Model.ShippingPostalCode</p>
+                        <p><i class="fa-solid fa-phone"></i> @Model.PhoneNumber</p>
+                        <p><i class="fa-solid fa-envelope"></i> @Model.Email</p>
+                    </div>
+                </div>
+
+                <!-- Billing Address (if different) -->
+                @if (!string.IsNullOrEmpty(Model.BillingAddress))
+                {
+                    <div class="order-section">
+                        <h2><i class="fa-solid fa-file-invoice"></i> Billing Address</h2>
+                        <div class="address-card">
+                            <p>@Model.BillingAddress</p>
+                            <p>@Model.BillingCity, @Model.BillingState @Model.BillingPostalCode</p>
+                        </div>
+                    </div>
+                }
+
+                <!-- Order Notes -->
+                @if (!string.IsNullOrEmpty(Model.Notes) || !string.IsNullOrEmpty(Model.CustomerComments))
+                {
+                    <div class="order-section full-width">
+                        <h2><i class="fa-solid fa-note-sticky"></i> Order Notes</h2>
+                        <div class="notes-card">
+                            @if (!string.IsNullOrEmpty(Model.CustomerComments))
+                            {
+                                <div class="note-item">
+                                    <strong>Your Comments:</strong>
+                                    <p>@Model.CustomerComments</p>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Notes))
+                            {
+                                <div class="note-item">
+                                    <strong>Order Notes:</strong>
+                                    <p>@Model.Notes</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="order-actions-footer">
+                <a asp-controller="Account" asp-action="Orders" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Orders
+                </a>
+
+                @if (Model.Status == "Delivered")
+                {
+                    <button class="btn-reorder" onclick="reorder(@Model.Id)">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        Reorder
+                    </button>
+                }
+
+                <button class="btn-print" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i>
+                    Print
+                </button>
+
+                <button class="btn-download" onclick="downloadInvoice(@Model.Id)">
+                    <i class="fa-solid fa-download"></i>
+                    Download Invoice
+                </button>
+            </div>
+        </div>
+
+@section Scripts {
+            <script>
+                function reorder(orderId) {
+                    if (confirm('Add all items from this order to your cart?')) {
+                        // TODO: Implement reorder functionality
+                        alert('Reorder functionality coming soon!');
+                    }
+                }
+
+                function downloadInvoice(orderId) {
+                    // TODO: Implement invoice download
+                    alert('Invoice download coming soon!');
+                }
+            </script>
+}

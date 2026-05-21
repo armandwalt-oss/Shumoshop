@@ -1,0 +1,127 @@
+﻿@model WebApplication1.Models.Product
+
+@{
+    ViewData["Title"] = "Create Product";
+}
+
+<link rel="stylesheet" href="~/css/DevChanges.css" />
+
+<div class="manage-container">
+    <a asp-action="Index" asp-route-section="products" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+
+    <div class="page-header">
+        <i class="fas fa-plus-circle"></i>
+        <h1>Create New Product</h1>
+    </div>
+
+    <p class="subtitle">Add a new product to your inventory</p>
+
+    <div class="divider"></div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="create-form-container">
+        <form asp-action="CreateProduct" method="post">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Name"><i class="fas fa-tag"></i> Product Name *</label>
+                    <input asp-for="Name" class="form-control" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SKU"><i class="fas fa-barcode"></i> SKU *</label>
+                    <input asp-for="SKU" class="form-control" required />
+                    <span asp-validation-for="SKU" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Price"><i class="fas fa-dollar-sign"></i> Price *</label>
+                    <input asp-for="Price" type="number" step="0.01" class="form-control" required />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="StockQuantity"><i class="fas fa-boxes"></i> Stock Quantity *</label>
+                    <input asp-for="StockQuantity" type="number" class="form-control" required />
+                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="CategoryId"><i class="fas fa-folder"></i> Category *</label>
+                    <select asp-for="CategoryId" class="form-control" required id="categorySelect">
+                        <option value="">Select Category</option>
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SubCategoryId"><i class="fas fa-folder-open"></i> Sub Category *</label>
+                    <select asp-for="SubCategoryId" class="form-control" required>
+                        <option value="">Select Sub Category</option>
+                        @foreach (var subCategory in ViewBag.SubCategories)
+                        {
+                            <option value="@subCategory.Id">@subCategory.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SubCategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label asp-for="ImageUrl"><i class="fas fa-image"></i> Image URL</label>
+                    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label asp-for="Description"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-checkboxes">
+                <label class="checkbox-label">
+                    <input asp-for="IsFeatured" type="checkbox" />
+                    <span><i class="fas fa-star"></i> Featured Product</span>
+                </label>
+
+                <label class="checkbox-label">
+                    <input asp-for="IsNewArrival" type="checkbox" />
+                    <span><i class="fas fa-plus-circle"></i> New Arrival</span>
+                </label>
+
+                <label class="checkbox-label">
+                    <input asp-for="IsSpecial" type="checkbox" />
+                    <span><i class="fas fa-fire"></i> Special Offer</span>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-plus"></i> Create Product
+                </button>
+                <a asp-action="Index" asp-route-section="products" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

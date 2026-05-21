@@ -1,0 +1,210 @@
+﻿@model WebApplication1.Models.ReturnRequest
+
+@{
+    ViewData["Title"] = "Request a Return";
+    var orders = ViewBag.Orders as List<WebApplication1.Models.Order>;
+}
+
+<link href="~/css/returns.css" rel="stylesheet" />
+
+<div class="request-return-page">
+    <a href="/Account/MyReturns" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to My Returns
+    </a>
+
+    <div class="page-header">
+        <h1>
+            <i class="fa-solid fa-rotate-left"></i>
+            Request a Return
+        </h1>
+        <p>Please fill out the form below to request a return</p>
+    </div>
+
+    <div class="return-form">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary">
+                <h4><i class="fa-solid fa-triangle-exclamation"></i> Please correct the following errors:</h4>
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="info-box">
+            <h4><i class="fa-solid fa-circle-info"></i> Before you begin</h4>
+            <ul>
+                <li>Returns must be requested within 30 days of delivery</li>
+                <li>Items must be unused and in original packaging</li>
+                <li>You'll receive a Return Authorization Number (RAN) via email</li>
+                <li>Refunds are processed within 7-10 business days after we receive your return</li>
+            </ul>
+        </div>
+
+        <form asp-action="RequestReturn" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <!-- STEP 1: Select Order -->
+            <div class="form-section">
+                <h3><i class="fa-solid fa-1"></i> Select Your Order</h3>
+
+                <div class="form-group">
+                    <label for="OrderId">
+                        Which order contains the item you want to return?
+                        <span class="required">*</span>
+                    </label>
+                    <select asp-for="OrderId" class="form-control" id="OrderId" required onchange="loadOrderItems(this.value)">
+                        <option value="">-- Select an Order --</option>
+                        @if (orders != null)
+                        {
+                            @foreach (var order in orders)
+                            {
+                                <option value="@order.Id">
+                                    Order #@order.OrderNumber - @order.OrderDate.ToString("MMM dd, yyyy") - R @order.TotalAmount.ToString("N2")
+                                </option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="OrderId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- STEP 2: Select Item -->
+            <div class="form-section" id="itemSection" style="display: none;">
+                <h3><i class="fa-solid fa-2"></i> Select the Item</h3>
+
+                <div class="form-group">
+                    <label for="OrderItemId">
+                        Which item do you want to return?
+                        <span class="required">*</span>
+                    </label>
+                    <select asp-for="OrderItemId" class="form-control" id="OrderItemId" required>
+                        <option value="">-- Select an Item --</option>
+                    </select>
+                    <span asp-validation-for="OrderItemId" class="text-danger"></span>
+                </div>
+
+                <div id="selectedItemPreview"></div>
+            </div>
+
+            <!-- STEP 3: Return Reason -->
+            <div class="form-section">
+                <h3><i class="fa-solid fa-3"></i> Reason for Return</h3>
+
+                <div class="form-group">
+                    <label for="ReturnReason">
+                        Why are you returning this item?
+                        <span class="required">*</span>
+                    </label>
+                    <select asp-for="ReturnReason" class="form-control" required>
+                        <option value="">-- Select a Reason --</option>
+                        <option value="Damaged">Item Arrived Damaged</option>
+                        <option value="Wrong Item">Wrong Item Received</option>
+                        <option value="Not as Described">Not as Described</option>
+                        <option value="Defective">Item is Defective</option>
+                        <option value="Changed Mind">Changed My Mind</option>
+                        <option value="Better Price">Found a Better Price</option>
+                        <option value="Other">Other Reason</option>
+                    </select>
+                    <span asp-validation-for="ReturnReason" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="DetailedReason">
+                        Please provide more details (Optional)
+                    </label>
+                    <textarea id="DetailedReason" name="DetailedReason" class="form-control" placeholder="Tell us more about why you're returning this item..."></textarea>
+                    <small>Maximum 1000 characters</small>
+                </div>
+            </div>
+
+            <!-- STEP 4: Photos (Optional) -->
+            <div class="form-section">
+                <h3><i class="fa-solid fa-4"></i> Upload Photos (Optional)</h3>
+
+                <div class="form-group">
+                    <label>Upload photos of the item (if damaged or defective)</label>
+                    <small>You can upload up to 3 photos. Accepted formats: JPG, PNG (Max 5MB each)</small>
+
+                    <div style="margin-top: 15px;">
+                        <input type="file" id="Photo1" name="Photo1" accept="image/*" class="form-control" style="margin-bottom: 10px;" />
+                        <input type="file" id="Photo2" name="Photo2" accept="image/*" class="form-control" style="margin-bottom: 10px;" />
+                        <input type="file" id="Photo3" name="Photo3" accept="image/*" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="/Account/MyReturns" class="btn btn-secondary">
+                    <i class="fa-solid fa-times"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Submit Return Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // This will be populated by the controller with order items data
+        var orderItemsData = @Html.Raw(ViewBag.OrderItemsJson ?? "{}");
+
+        function loadOrderItems(orderId) {
+            const itemSection = document.getElementById('itemSection');
+            const orderItemSelect = document.getElementById('OrderItemId');
+            const itemPreview = document.getElementById('selectedItemPreview');
+
+            if (!orderId) {
+                itemSection.style.display = 'none';
+                orderItemSelect.innerHTML = '<option value="">-- Select an Item --</option>';
+                itemPreview.innerHTML = '';
+                return;
+            }
+
+            // Show the item section
+            itemSection.style.display = 'block';
+
+            // Get items for this order
+            const items = orderItemsData[orderId] || [];
+
+            // Populate the select
+            let options = '<option value="">-- Select an Item --</option>';
+            items.forEach(item => {
+                options += `<option value="${item.id}">${item.productName} - Qty: ${item.quantity} - R ${item.totalPrice.toFixed(2)}</option>`;
+            });
+
+            orderItemSelect.innerHTML = options;
+
+            // Add change event to show preview
+            orderItemSelect.onchange = function() {
+                const selectedItemId = this.value;
+                const selectedItem = items.find(i => i.id == selectedItemId);
+
+                if (selectedItem) {
+                    itemPreview.innerHTML = `
+                        <div class="order-item-card">
+                            <img src="${selectedItem.imageUrl || '/images/no-image.jpg'}" alt="${selectedItem.productName}" class="item-image" />
+                            <div class="item-details">
+                                <h4>${selectedItem.productName}</h4>
+                                <p><strong>SKU:</strong> ${selectedItem.productSKU}</p>
+                                <p><strong>Quantity:</strong> ${selectedItem.quantity}</p>
+                                <p><strong>Price:</strong> R ${selectedItem.totalPrice.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    itemPreview.innerHTML = '';
+                }
+            };
+        }
+    </script>
+}

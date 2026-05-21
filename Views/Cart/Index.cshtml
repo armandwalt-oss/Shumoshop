@@ -1,0 +1,259 @@
+﻿@model WebApplication1.Models.Cart
+
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<link href="~/css/cart.css" rel="stylesheet" />
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1><i class="fa-solid fa-shopping-cart"></i> Your Shopping Cart</h1>
+        <p class="cart-subtitle">Review your items before checkout</p>
+    </div>
+
+    @if (Model.CartItems == null || !Model.CartItems.Any())
+    {
+        <!-- Empty Cart -->
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <i class="fa-solid fa-shopping-cart"></i>
+            </div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything to your cart yet.</p>
+            <a href="/Shop" class="btn-primary">
+                <i class="fa-solid fa-shopping-bag"></i> Continue Shopping
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Cart with Items -->
+        <div class="cart-content">
+            <!-- Cart Items Section -->
+            <div class="cart-items-section">
+                <div class="cart-actions-top">
+                    <span class="items-count">@Model.TotalItems item(s)</span>
+                    <button type="button" class="btn-clear-cart" onclick="clearCart()">
+                        <i class="fa-solid fa-trash"></i> Clear Cart
+                    </button>
+                </div>
+
+                <div class="cart-items-list">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <div class="cart-item" data-item-id="@item.Id">
+                            <!-- Product Image -->
+                            <div class="item-image">
+                                @if (!string.IsNullOrEmpty(item.Product.ImageUrl))
+                                {
+                                    <img src="@item.Product.ImageUrl" alt="@item.Product.Name" />
+                                }
+                                else
+                                {
+                                    <div class="placeholder-image">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="item-details">
+                                <h3 class="item-name">@item.Product.Name</h3>
+                                <p class="item-category">@item.Product.Category</p>
+                                <p class="item-sku">SKU: @item.Product.SKU</p>
+
+                                @if (item.Product.StockQuantity < 5)
+                                {
+                                    <p class="stock-warning">
+                                        <i class="fa-solid fa-exclamation-triangle"></i>
+                                        Only @item.Product.StockQuantity left in stock
+                                    </p>
+                                }
+                            </div>
+
+                            <!-- Quantity Controls -->
+                            <div class="item-quantity">
+                                <label>Quantity</label>
+                                <div class="quantity-controls">
+                                    <button type="button" class="qty-btn" onclick="updateQuantity(@item.Id, @item.Quantity - 1)">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                    <input type="number"
+                                           class="qty-input"
+                                           value="@item.Quantity"
+                                           min="1"
+                                           max="@item.Product.StockQuantity"
+                                           data-item-id="@item.Id"
+                                           onchange="updateQuantityInput(this, @item.Id)" />
+                                    <button type="button" class="qty-btn" onclick="updateQuantity(@item.Id, @item.Quantity + 1)">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="item-price">
+                                <p class="unit-price">R @item.UnitPrice.ToString("N2")</p>
+                                <p class="total-price" data-item-total="@item.Id">R @item.TotalPrice.ToString("N2")</p>
+                            </div>
+
+                            <!-- Remove Button -->
+                            <div class="item-actions">
+                                <button type="button" class="btn-remove" onclick="removeItem(@item.Id)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Cart Summary Section -->
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h2>Order Summary</h2>
+
+                    <div class="summary-row">
+                        <span>Subtotal (@Model.TotalItems items)</span>
+                        <span id="cart-subtotal">R @Model.SubTotal.ToString("N2")</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span class="shipping-tbd">TBD</span>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span id="cart-total">R @Model.SubTotal.ToString("N2")</span>
+                    </div>
+
+                    <a asp-controller="Order" asp-action="Checkout" class="btn-checkout">
+                        <i class="fa-solid fa-lock"></i> Proceed to Checkout
+                    </a>
+
+                    <a href="/Shop" class="btn-continue-shopping">
+                        <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="trust-badges">
+                    <div class="trust-item">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Secure Payment</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <span>Fast Delivery</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Update quantity
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) return;
+
+            $.ajax({
+                url: '/Cart/UpdateQuantity',
+                type: 'POST',
+                data: { cartItemId: itemId, quantity: newQuantity },
+                success: function (response) {
+                    if (response.success) {
+                        // Update quantity input
+                        $(`input[data-item-id="${itemId}"]`).val(newQuantity);
+
+                        // Update item total
+                        $(`[data-item-total="${itemId}"]`).text('R ' + response.itemTotal.toFixed(2));
+
+                        // Update cart total
+                        $('#cart-subtotal').text('R ' + response.cartTotal.toFixed(2));
+                        $('#cart-total').text('R ' + response.cartTotal.toFixed(2));
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error updating quantity');
+                }
+            });
+        }
+
+        // Update quantity from input
+        function updateQuantityInput(input, itemId) {
+            const newQuantity = parseInt(input.value);
+            if (newQuantity >= 1) {
+                updateQuantity(itemId, newQuantity);
+            }
+        }
+
+        // Remove item
+        function removeItem(itemId) {
+            if (!confirm('Remove this item from your cart?')) return;
+
+            $.ajax({
+                url: '/Cart/RemoveItem',
+                type: 'POST',
+                data: { cartItemId: itemId },
+                success: function (response) {
+                    if (response.success) {
+                        // Remove item from DOM
+                        $(`.cart-item[data-item-id="${itemId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Check if cart is empty
+                            if ($('.cart-item').length === 0) {
+                                location.reload();
+                            } else {
+                                // Update totals
+                                $('#cart-subtotal').text('R ' + response.cartTotal.toFixed(2));
+                                $('#cart-total').text('R ' + response.cartTotal.toFixed(2));
+
+                                // Update header cart count
+                                $('.cart-count').text('(' + response.cartCount + ')');
+
+                                // Update items count
+                                $('.items-count').text(response.cartCount + ' item(s)');
+                            }
+                        });
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error removing item');
+                }
+            });
+        }
+
+        // Clear cart
+        function clearCart() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) return;
+
+            $.ajax({
+                url: '/Cart/ClearCart',
+                type: 'POST',
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                },
+                error: function () {
+                    alert('Error clearing cart');
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,18 @@
+﻿@model (string Placeholder, int TotalCount, string TableContainer, string RowSelector, string SearchFields, string EmptySelector)
+
+<div class="search-container"
+     data-table-filter
+     data-table-container="@Model.TableContainer"
+     data-row-selector="@Model.RowSelector"
+     data-search-fields="@Model.SearchFields"
+     data-empty="@Model.EmptySelector">
+
+    <div class="search-box">
+        <i class="fa-solid fa-search"></i>
+        <input type="text" data-search-input placeholder="@Model.Placeholder" />
+    </div>
+
+    <div class="search-info">
+        <span data-search-count>@Model.TotalCount</span> result(s) found
+    </div>
+</div>

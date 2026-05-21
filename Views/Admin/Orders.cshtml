@@ -1,0 +1,135 @@
+﻿@model List<WebApplication1.Models.Order>
+@{
+    ViewData["Title"] = "Manage Orders";
+    var selectedStatus = ViewBag.SelectedStatus as string;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-box"></i>
+            Manage Orders
+        </h1>
+        <p>View and manage all customer orders</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="/Admin/Orders" class="filter-tab @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")">
+            <i class="fa-solid fa-list"></i>
+            All Orders
+        </a>
+        <a href="/Admin/Orders?status=Pending" class="filter-tab @(selectedStatus == "Pending" ? "active" : "")">
+            <i class="fa-solid fa-clock"></i>
+            Pending
+        </a>
+        <a href="/Admin/Orders?status=Processing" class="filter-tab @(selectedStatus == "Processing" ? "active" : "")">
+            <i class="fa-solid fa-gear"></i>
+            Processing
+        </a>
+        <a href="/Admin/Orders?status=Shipped" class="filter-tab @(selectedStatus == "Shipped" ? "active" : "")">
+            <i class="fa-solid fa-truck"></i>
+            Shipped
+        </a>
+        <a href="/Admin/Orders?status=Delivered" class="filter-tab @(selectedStatus == "Delivered" ? "active" : "")">
+            <i class="fa-solid fa-check-circle"></i>
+            Delivered
+        </a>
+    </div>
+
+    <!-- Search Bar (reusable) -->
+    @await Html.PartialAsync("_TableSearchBar",
+    ("Search by order #, customer, date, items, or total...",
+    Model?.Count ?? 0,
+    "#tableContainer",
+    ".order-row",
+    ".order-id, .order-customer, .order-date, .order-items, .order-total",
+    "#noResults"))
+
+    <!-- Orders Table -->
+    <div class="dashboard-section">
+        @if (Model != null && Model.Any())
+        {
+            <div class="orders-table-container" id="tableContainer">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr class="order-row">
+                                <td class="order-number order-id">#@order.OrderNumber</td>
+
+                                <td class="order-customer">
+                                    <div class="customer-info">
+                                        <strong>@order.User?.Name</strong>
+                                        <small>@order.User?.Email</small>
+                                    </div>
+                                </td>
+
+                                <td class="order-date">@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                <td class="order-items">@order.OrderItems?.Count items</td>
+                                <td class="total-amount order-total">R @order.TotalAmount.ToString("N2")</td>
+
+                                <td>
+                                    <span class="status-badge status-@order.Status.ToLower()">
+                                        @order.Status
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <a href="/Admin/OrderDetails/@order.Id" class="btn-view">
+                                        <i class="fa-solid fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noResults" class="empty-state" style="display:none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>No orders found</h3>
+                <p>Try adjusting your search terms</p>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>No orders found</h3>
+                <p>@(string.IsNullOrEmpty(selectedStatus) ? "There are no orders yet" : $"No {selectedStatus} orders found")</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="success-notification">
+        <i class="fa-solid fa-check-circle"></i>
+        @TempData["SuccessMessage"]
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelector('.success-notification').style.display = 'none';
+        }, 5000);
+    </script>
+}

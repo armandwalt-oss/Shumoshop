@@ -1,0 +1,187 @@
+﻿@{
+    ViewData["Title"] = "Returns Policy";
+}
+
+<link href="~/css/returns.css" rel="stylesheet" />
+
+<div class="returns-container">
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Home
+    </a>
+
+    <div class="returns-header">
+        <h1>
+            <i class="fa-solid fa-box-open"></i>
+            Returns Policy
+        </h1>
+        <p>We want you to be completely satisfied with your purchase</p>
+    </div>
+
+    <!-- Hero Section with Request Button -->
+    <div class="hero-section">
+        <h2>30-Day Return Guarantee</h2>
+        <p>
+            Return any eligible product within 30 days of delivery for a full refund or exchange.
+        </p>
+        <a href="/Account/MyReturns" class="btn-request-return">
+            <i class="fa-solid fa-rotate-left"></i>
+            Request a Return
+        </a>
+    </div>
+
+    <!-- Quick Overview Cards -->
+    <div class="policy-grid">
+        <div class="policy-card">
+            <div class="policy-card-icon">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <h3>30-Day Window</h3>
+            <p>
+                You have 30 days from the date of delivery to initiate a return.
+                Returns requested after this period cannot be accepted.
+            </p>
+        </div>
+
+        <div class="policy-card">
+            <div class="policy-card-icon">
+                <i class="fa-solid fa-box-archive"></i>
+            </div>
+            <h3>Original Condition</h3>
+            <p>
+                Items must be unused, in original packaging with all accessories,
+                tags, and documentation included for a successful return.
+            </p>
+        </div>
+
+        <div class="policy-card">
+            <div class="policy-card-icon">
+                <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <h3>Full Refund</h3>
+            <p>
+                Approved returns receive a full refund to the original payment method
+                within 7-10 business days of receiving the returned item.
+            </p>
+        </div>
+    </div>
+
+    <!-- Return Conditions -->
+    <div class="conditions-section">
+        <h2>
+            <i class="fa-solid fa-clipboard-check"></i>
+            Return Eligibility
+        </h2>
+
+        <div class="conditions-grid">
+            <div class="condition-box returnable">
+                <h3><i class="fa-solid fa-check-circle"></i> We Accept Returns For:</h3>
+                <ul>
+                    <li>Items in original, unused condition</li>
+                    <li>Products with all original packaging</li>
+                    <li>Items with tags and labels attached</li>
+                    <li>Products with all accessories included</li>
+                    <li>Defective or damaged items</li>
+                    <li>Wrong items received</li>
+                </ul>
+            </div>
+
+            <div class="condition-box non-returnable">
+                <h3><i class="fa-solid fa-times-circle"></i> Non-Returnable Items:</h3>
+                <ul>
+                    <li>Opened liquids or chemicals</li>
+                    <li>Electrical items that have been installed</li>
+                    <li>Custom-ordered products</li>
+                    <li>Items showing signs of use or wear</li>
+                    <li>Products without original packaging</li>
+                    <li>Special-order items</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="important-notes">
+            <h4>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Important Notes
+            </h4>
+            <ul>
+                <li>Returns must be initiated within 30 days of delivery</li>
+                <li>Shipping costs for returns are the customer's responsibility (unless item is defective or incorrect)</li>
+                <li>Refunds are processed within 7-10 business days after we receive the item</li>
+                <li>Items must pass inspection before refund is approved</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- How to Return Process -->
+    <div class="process-section">
+        <h2>How to Return an Item</h2>
+
+        <div class="process-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Request a Return</h3>
+                <p>
+                    Log into your account and go to "My Orders". Select the order containing the item you want to return
+                    and click "Return Item". You can also start a return request from "My Returns" page.
+                </p>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Receive Return Authorization</h3>
+                <p>
+                    We'll review your request within 24 hours and send you a Return Authorization Number (RAN)
+                    via email along with return shipping instructions.
+                </p>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Ship Your Return</h3>
+                <p>
+                    Pack the item securely in its original packaging, attach the RAN label, and ship it to the
+                    address provided. Keep your tracking number for your records.
+                </p>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>Receive Your Refund</h3>
+                <p>
+                    Once we receive and inspect your return, we'll process your refund within 7-10 business days.
+                    You'll receive an email confirmation when the refund is issued.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="contact-section">
+        <h2><i class="fa-solid fa-headset"></i> Need Help with Your Return?</h2>
+        <p>Our customer service team is here to assist you</p>
+
+        <div class="contact-methods">
+            <div class="contact-method">
+                <i class="fa-solid fa-phone"></i>
+                <a href="tel:0128820844">(012) 882-0844</a>
+            </div>
+
+            <div class="contact-method">
+                <i class="fa-solid fa-envelope"></i>
+                <a href="mailto:info@@shumoshop.com">info@@shumoshop.com</a>
+            </div>
+
+            <div class="contact-method">
+                <i class="fa-solid fa-clock"></i>
+                <span>Mon-Fri: 8AM-5PM</span>
+            </div>
+        </div>
+    </div>
+</div>

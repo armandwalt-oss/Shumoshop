@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Bulk Product Import";
+}
+
+<link href="~/css/DevChanges.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fa-solid fa-file-csv"></i>
+                Bulk Product Import
+            </h1>
+            <p class="text-muted mb-0">
+                Upload a CSV to import many products at once. Import is idempotent —
+                existing SKUs are skipped, never overwritten.
+            </p>
+        </div>
+        <a asp-action="Index" asp-route-section="products" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Products
+        </a>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h5">Upload CSV</h2>
+            <p class="text-muted small mb-3">
+                Required columns:
+                <code>SKU</code>, <code>Name</code>, <code>Price</code>, <code>CategoryName</code>.
+                Optional:
+                <code>Description</code>, <code>SubCategoryName</code>, <code>StockQuantity</code>,
+                <code>ImageUrl</code>, <code>IsFeatured</code>, <code>IsNewArrival</code>, <code>IsSpecial</code>.
+            </p>
+
+            <form asp-action="BulkUploadPreview" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <input type="file" name="csvFile" accept=".csv,text/csv" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i> Preview Import
+                </button>
+                <a asp-action="BulkUploadTemplate" class="btn btn-outline-secondary ms-2">
+                    <i class="fa-solid fa-download"></i> Download Template CSV
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-info">
+        <div class="card-body">
+            <h2 class="h6">How it works</h2>
+            <ol class="mb-0 small text-muted">
+                <li>Upload a CSV. We parse + validate without writing anything.</li>
+                <li>You'll see a row-by-row preview showing which rows will insert, which are duplicates of existing SKUs, and which have errors.</li>
+                <li>You then choose to commit. Only rows marked "Will insert" are written. Everything else is skipped.</li>
+                <li>Existing products are never overwritten — duplicate SKUs are skipped.</li>
+            </ol>
+        </div>
+    </div>
+</div>

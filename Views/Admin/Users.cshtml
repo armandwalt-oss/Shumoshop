@@ -1,0 +1,93 @@
+﻿@model List<WebApplication1.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Manage Users";
+    var userOrderCounts = ViewBag.UserOrderCounts as Dictionary<string, int>;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="admin-dashboard">
+    <a href="/Admin" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+
+    <div class="admin-header">
+        <h1>
+            <i class="fa-solid fa-users"></i>
+            Manage Users
+        </h1>
+        <p>View all registered users</p>
+    </div>
+
+    <!-- Search Bar (Reusable Partial) -->
+    @await Html.PartialAsync("_TableSearchBar",
+    ("Search by name, email, phone, or location...",
+    Model?.Count ?? 0,
+    "#tableContainer",
+    ".user-row",
+    ".user-name, .user-email, .user-phone, .user-location",
+    "#noResults"))
+
+    <!-- Users Table -->
+    <div class="dashboard-section">
+        @if (Model != null && Model.Any())
+        {
+            <div class="orders-table-container" id="tableContainer">
+                <table class="orders-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Joined</th>
+                            <th>Orders</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        @foreach (var user in Model)
+                        {
+                            var orderCount = userOrderCounts != null && userOrderCounts.ContainsKey(user.Id)
+                            ? userOrderCounts[user.Id]
+                            : 0;
+
+                            <tr class="user-row">
+                                <td class="user-name">
+                                    <div class="customer-info">
+                                        <strong>@user.Name</strong>
+                                    </div>
+                                </td>
+                                <td class="user-email">@user.Email</td>
+                                <td class="user-phone">@(user.PhoneNumber ?? "N/A")</td>
+                                <td class="user-location">@(user.City ?? "N/A"), @(user.State ?? "N/A")</td>
+                                <td>@user.DateJoined.ToString("MMM dd, yyyy")</td>
+                                <td><strong>@orderCount</strong> orders</td>
+                                <td>
+                                    <a href="/Admin/UserDetails/@user.Id" class="btn-view">
+                                        <i class="fa-solid fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noResults" class="empty-state" style="display: none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>No users found</h3>
+                <p>Try adjusting your search terms</p>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <h3>No users found</h3>
+                <p>There are no registered users yet</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,503 @@
+﻿@model IEnumerable<WebApplication1.Models.Product>
+
+@{
+    ViewData["Title"] = "Home";
+    var featuredProducts = ViewBag.FeaturedProducts as List<WebApplication1.Models.Product>;
+    var newArrivals = ViewBag.NewArrivals as List<WebApplication1.Models.Product>;
+    var specialOffers = ViewBag.SpecialOffers as List<WebApplication1.Models.Product>;
+    var categoryProducts = ViewBag.CategoryProducts as Dictionary<string, List<WebApplication1.Models.Product>>;
+}
+
+@section Styles {
+    <link href="~/css/home.css" rel="stylesheet" asp-append-version="true" />
+}
+
+<!-- HOME PAGE WRAPPER - Prevents CSS conflicts -->
+<div class="home-page-wrapper">
+
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Welcome to <span class="company-name">ShumoShop</span></h1>
+                <p class="hero-subtitle">Shop Smart, Save More!</p>
+                <div class="hero-cta">
+                    <a asp-controller="Shop" asp-action="Index" class="btn-primary">Shop Now</a>
+                    <a asp-controller="FindAStore" asp-action="Index" class="btn-secondary">Find a Store</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Company Description -->
+    <section class="company-description">
+        <div class="container">
+            <p class="description-text">
+                Your smart, reliable online shopping destination. Great products, great prices, and a shopping experience you can trust.
+            </p>
+            <div class="cta-center">
+                <a asp-controller="Home" asp-action="About" class="btn-learn-more">Learn More About Us →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 1. HOT DEALS & SPECIAL OFFERS (FIRST) -->
+    @if (specialOffers != null && specialOffers.Any())
+    {
+        <section class="special-offers-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Hot Deals & Special Offers</h2>
+                    <div class="header-actions">
+                        <a asp-controller="Shop" asp-action="Index" asp-route-specials="true" class="btn-view-more">View More</a>
+                    </div>
+                </div>
+
+                <div class="carousel-wrapper">
+                    <button class="carousel-arrow left" id="specialsLeft">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <div class="carousel-container" id="specialsCarousel">
+                        @foreach (var product in specialOffers)
+                        {
+                            <a asp-controller="Shop" asp-action="Product" asp-route-id="@product.Id" class="pro-product-card carousel-item">
+                                <span class="pro-discount-badge special">40% OFF</span>
+
+                                <div class="pro-product-image">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl" alt="@product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="pro-image-placeholder">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="pro-product-info">
+                                    <p class="pro-category-tag">
+                                        @if (!string.IsNullOrEmpty(product.Category?.Name))
+                                            {
+                                                <span class="tag tag-category">@product.Category.Name</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(product.SubCategory?.Name))
+                                            {
+                                                <span class="tag tag-subcategory">@product.SubCategory.Name</span>
+                                            }
+                                    </p>
+                                    <h4 class="pro-product-name">@product.Name</h4>
+                                    <p class="pro-product-sku">SKU: @product.SKU</p>
+
+                                    @if (product.Price > 0)
+                                    {
+                                        <div class="pro-price-section">
+                                            <p class="pro-current-price special">R @product.Price.ToString("N2")</p>
+                                            <p class="pro-old-price">R @((product.Price * 1.67m).ToString("N2"))</p>
+                                        </div>
+                                    }
+
+                                    <div class="pro-rating">
+                                        <span class="pro-stars">★★★★★</span>
+                                        <span class="pro-rating-count">(0)</span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+
+                    <button class="carousel-arrow right" id="specialsRight">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- New Arrivals Banner -->
+    <section class="promo-banner dark-banner">
+        <div class="banner-content">
+            <h2>WE ARE ALWAYS GETTING NEW ARRIVALS, TAKE A LOOK AT OUR LATEST ONES.</h2>
+            <a asp-controller="Shop" asp-action="NewArrivals" class="btn-white">SHOP NOW</a>
+        </div>
+    </section>
+
+    <!-- 2. NEW ARRIVALS (SECOND) -->
+    @if (newArrivals != null && newArrivals.Any())
+    {
+        <section class="new-arrivals-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>New Arrivals</h2>
+                    <div class="header-actions">
+                        <a asp-controller="Shop" asp-action="NewArrivals" class="btn-view-more">View More</a>
+                    </div>
+                </div>
+
+                <div class="carousel-wrapper">
+                    <button class="carousel-arrow left" id="arrivalsLeft">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <div class="carousel-container" id="arrivalsCarousel">
+                        @foreach (var product in newArrivals)
+                        {
+                            <a asp-controller="Shop" asp-action="Product" asp-route-id="@product.Id" class="pro-product-card carousel-item">
+                                <span class="pro-new-badge">NEW</span>
+
+                                <div class="pro-product-image">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl" alt="@product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="pro-image-placeholder">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="pro-product-info">
+                                    <p class="pro-category-tag">
+                                        @if (!string.IsNullOrEmpty(product.Category?.Name))
+                                            {
+                                                <span class="tag tag-category">@product.Category.Name</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(product.SubCategory?.Name))
+                                            {
+                                                <span class="tag tag-subcategory">@product.SubCategory.Name</span>
+                                            }</p>
+                                    <h4 class="pro-product-name">@product.Name</h4>
+                                    <p class="pro-product-sku">SKU: @product.SKU</p>
+
+                                    @if (product.Price > 0)
+                                    {
+                                        <div class="pro-price-section">
+                                            <p class="pro-current-price">R @product.Price.ToString("N2")</p>
+                                        </div>
+                                    }
+
+                                    <div class="pro-rating">
+                                        <span class="pro-stars">★★★★★</span>
+                                        <span class="pro-rating-count">(0)</span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+
+                    <button class="carousel-arrow right" id="arrivalsRight">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- 3. FEATURED PRODUCTS (THIRD) -->
+    <section class="featured-products-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Products</h2>
+                <div class="header-actions">
+                    <a asp-controller="Shop" asp-action="Index" class="btn-view-more">View More</a>
+                </div>
+            </div>
+
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow left" id="featuredLeft">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <div class="carousel-container" id="featuredCarousel">
+                    @if (featuredProducts != null && featuredProducts.Any())
+                    {
+                        @foreach (var product in featuredProducts)
+                        {
+                            <a asp-controller="Shop" asp-action="Product" asp-route-id="@product.Id" class="pro-product-card carousel-item">
+                                @if (product.IsNewArrival)
+                                {
+                                    <span class="pro-new-badge">NEW</span>
+                                }
+                                @if (product.IsSpecial)
+                                {
+                                    <span class="pro-discount-badge">37% OFF</span>
+                                }
+
+                                <div class="pro-product-image">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl" alt="@product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="pro-image-placeholder">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="pro-product-info">
+                                    <p class="pro-category-tag">
+                                        @if (!string.IsNullOrEmpty(product.Category?.Name))
+                                            {
+                                                <span class="tag tag-category">@product.Category.Name</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(product.SubCategory?.Name))
+                                            {
+                                                <span class="tag tag-subcategory">@product.SubCategory.Name</span>
+                                            }
+                                    </p>
+                                    <h4 class="pro-product-name">@product.Name</h4>
+                                    <p class="pro-product-sku">SKU: @product.SKU</p>
+
+                                    @if (product.Price > 0)
+                                    {
+                                        <div class="pro-price-section">
+                                            <p class="pro-current-price">R @product.Price.ToString("N2")</p>
+                                        </div>
+                                    }
+
+                                    <div class="pro-rating">
+                                        <span class="pro-stars">★★★★★</span>
+                                        <span class="pro-rating-count">(0)</span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="no-products-message">
+                            <i class="fa-solid fa-box-open"></i>
+                            <p>No featured products available at the moment.</p>
+                            <a asp-controller="Shop" asp-action="Index" class="btn-primary">Browse All Products</a>
+                        </div>
+                    }
+                </div>
+
+                <button class="carousel-arrow right" id="featuredRight">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. DYNAMIC CATEGORY CAROUSELS (FROM DATABASE) -->
+    @if (categoryProducts != null && categoryProducts.Any())
+    {
+        int carouselIndex = 0;
+        foreach (var categoryGroup in categoryProducts)
+        {
+            var categoryName = categoryGroup.Key;
+            var products = categoryGroup.Value;
+
+            if (products != null && products.Any())
+            {
+                carouselIndex++;
+                var leftBtnId = $"cat{carouselIndex}Left";
+                var rightBtnId = $"cat{carouselIndex}Right";
+                var carouselId = $"cat{carouselIndex}Carousel";
+
+                <section class="category-carousel-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>@categoryName</h2>
+                            <div class="header-actions">
+                                <a asp-controller="Shop" asp-action="Index" asp-route-category="@categoryName" class="btn-view-more">View More</a>
+                            </div>
+                        </div>
+
+                        <div class="carousel-wrapper">
+                            <button class="carousel-arrow left" id="@leftBtnId">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+
+                            <div class="carousel-container" id="@carouselId">
+                                @foreach (var product in products)
+                                {
+                                    <a asp-controller="Shop" asp-action="Product" asp-route-id="@product.Id" class="pro-product-card carousel-item">
+                                        @if (product.IsNewArrival)
+                                        {
+                                            <span class="pro-new-badge">NEW</span>
+                                        }
+                                        @if (product.IsSpecial)
+                                        {
+                                            <span class="pro-discount-badge">SPECIAL</span>
+                                        }
+
+                                        <div class="pro-product-image">
+                                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                            {
+                                                <img src="@product.ImageUrl" alt="@product.Name" />
+                                            }
+                                            else
+                                            {
+                                                <div class="pro-image-placeholder">
+                                                    <i class="fa-solid fa-image"></i>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="pro-product-info">
+                                            <p class="pro-category-tag">
+                                            @if (!string.IsNullOrEmpty(product.Category?.Name))
+                                            {
+                                                <span class="tag tag-category">@product.Category.Name</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(product.SubCategory?.Name))
+                                            {
+                                                <span class="tag tag-subcategory">@product.SubCategory.Name</span>
+                                            }</p>
+                                            <h4 class="pro-product-name">@product.Name</h4>
+                                            <p class="pro-product-sku">SKU: @product.SKU</p>
+
+                                            @if (product.Price > 0)
+                                            {
+                                                <div class="pro-price-section">
+                                                    <p class="pro-current-price">R @product.Price.ToString("N2")</p>
+                                                </div>
+                                            }
+
+                                            <div class="pro-rating">
+                                                <span class="pro-stars">★★★★★</span>
+                                                <span class="pro-rating-count">(0)</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+
+                            <button class="carousel-arrow right" id="@rightBtnId">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            }
+        }
+    }
+
+    <!-- Why Choose ShumoShop -->
+    <section class="why-choose-section">
+        <div class="container">
+            <h2>Why Shop With Us?</h2>
+            <div class="trust-badges-grid">
+                <div class="trust-badge">
+                    <div class="badge-icon">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <h3>Fast Delivery</h3>
+                    <p>Quick and reliable shipping on all orders</p>
+                </div>
+
+                <div class="trust-badge">
+                    <div class="badge-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>Secure Payment</h3>
+                    <p>100% secure and encrypted transactions</p>
+                </div>
+
+                <div class="trust-badge">
+                    <div class="badge-icon">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Friendly customer service ready to help</p>
+                </div>
+
+                <div class="trust-badge">
+                    <div class="badge-icon">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <h3>Easy Returns</h3>
+                    <p>Hassle-free returns and exchanges</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <h2>What Our Customers Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"Excellent service and great product quality. Shopping was easy and delivery was fast!"</p>
+                    <p class="testimonial-author">— John Smith</p>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"Great products at great prices. The customer support team is very helpful and responsive."</p>
+                    <p class="testimonial-author">— Sarah Johnson</p>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"Been shopping here for months now. Always reliable and excellent quality products. Highly recommend!"</p>
+                    <p class="testimonial-author">— Michael Chen</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JavaScript - CAROUSEL ONLY -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carousel functionality
+            function initCarousel(containerId, leftBtnId, rightBtnId) {
+                const container = document.getElementById(containerId);
+                const leftBtn = document.getElementById(leftBtnId);
+                const rightBtn = document.getElementById(rightBtnId);
+
+                if (!container || !leftBtn || !rightBtn) return;
+
+                const scrollAmount = 280;
+
+                leftBtn.addEventListener('click', () => {
+                    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+
+                rightBtn.addEventListener('click', () => {
+                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+
+                function updateButtons() {
+                    const maxScroll = container.scrollWidth - container.clientWidth;
+                    leftBtn.style.opacity = container.scrollLeft <= 0 ? '0.3' : '1';
+                    rightBtn.style.opacity = container.scrollLeft >= maxScroll - 10 ? '0.3' : '1';
+                }
+
+                container.addEventListener('scroll', updateButtons);
+                updateButtons();
+            }
+
+            // Initialize carousels
+            initCarousel('featuredCarousel', 'featuredLeft', 'featuredRight');
+            initCarousel('specialsCarousel', 'specialsLeft', 'specialsRight');
+            initCarousel('arrivalsCarousel', 'arrivalsLeft', 'arrivalsRight');
+
+            // Initialize dynamic category carousels
+            @if (categoryProducts != null && categoryProducts.Any())
+            {
+                        int idx = 0;
+                        foreach (var cat in categoryProducts)
+                        {
+                                    if (cat.Value != null && cat.Value.Any())
+                                    {
+                                                idx++;
+                                                <text>initCarousel('cat@(idx)Carousel', 'cat@(idx)Left', 'cat@(idx)Right');</text>
+                                    }
+                        }
+            }
+        });
+    </script>
+
+</div>
+<!-- END HOME PAGE WRAPPER -->

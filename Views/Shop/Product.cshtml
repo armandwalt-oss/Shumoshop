@@ -1,0 +1,231 @@
+﻿@model WebApplication1.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    // JS-safe numeric literal
+    var maxStockJs = Model.StockQuantity > 0 ? Model.StockQuantity : 0;
+}
+
+<link href="~/css/shop.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="product-detail-container">
+    <div class="product-detail-wrapper">
+        <!-- Product Image Section -->
+        <div class="product-image-section">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Name" class="product-main-image" loading="lazy" />
+            }
+            else
+            {
+                <div class="product-placeholder">
+                    <i class="fa-solid fa-image"></i>
+                    <p>No Image Available</p>
+                </div>
+            }
+
+            <!-- Product Badges -->
+            <div class="product-badges">
+                @if (Model.IsSpecial)
+                {
+                    <span class="badge-special">SPECIAL OFFER</span>
+                }
+                @if (Model.IsNewArrival)
+                {
+                    <span class="badge-new">NEW ARRIVAL</span>
+                }
+                @if (!Model.InStock || Model.StockQuantity <= 0)
+                {
+                    <span class="badge-out-of-stock">OUT OF STOCK</span>
+                }
+            </div>
+        </div>
+
+        <!-- Product Info Section -->
+        <div class="product-info-section">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a asp-controller="Home" asp-action="Index">Home</a>
+                <span>/</span>
+
+                <a asp-controller="Shop" asp-action="Index">Shop</a>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Category?.Name))
+                {
+                    <span>/</span>
+                    <a asp-controller="Shop" asp-action="Index" asp-route-category="@Model.Category.Name">
+                        @Model.Category.Name
+                    </a>
+                }
+
+                <span>/</span>
+                <span>@Model.Name</span>
+            </div>
+
+            <!-- Product Category -->
+            @if (!string.IsNullOrWhiteSpace(Model.Category?.Name))
+            {
+                <p class="product-category-tag">@Model.Category.Name</p>
+            }
+
+            <!-- Product Name -->
+            <h1 class="product-title">@Model.Name</h1>
+
+            <!-- Product SKU -->
+            @if (!string.IsNullOrWhiteSpace(Model.SKU))
+            {
+                <p class="product-sku">SKU: @Model.SKU</p>
+            }
+
+            <!-- Product Price -->
+            @if (Model.Price > 0)
+            {
+                <div class="product-price-section">
+                    <span class="product-price">R @Model.Price.ToString("N2")</span>
+                    @if (Model.IsSpecial)
+                    {
+                        <span class="price-badge">Special Price!</span>
+                    }
+                </div>
+            }
+
+            <!-- Stock Status -->
+            <div class="stock-section">
+                @if (Model.InStock && Model.StockQuantity > 0)
+                {
+                    <div class="stock-indicator in-stock">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>In Stock</span>
+                        <span class="stock-count">(@Model.StockQuantity available)</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="stock-indicator out-of-stock">
+                        <i class="fa-solid fa-times-circle"></i>
+                        <span>Out of Stock</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Product Description -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="product-description">
+                    <h3>Description</h3>
+                    <p>@Model.Description</p>
+                </div>
+            }
+
+            <!-- Add to Cart Section -->
+            <div class="product-actions">
+                @if (Model.InStock && Model.StockQuantity > 0)
+                {
+                    <div class="quantity-selector">
+                        <label>Quantity:</label>
+                        <div class="quantity-controls">
+                            <button class="qty-btn" onclick="decreaseQuantity()" type="button">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+
+                            <input type="number" id="productQuantity" value="1" min="1" max="@Model.StockQuantity" />
+
+                            <button class="qty-btn" onclick="increaseQuantity(@Model.StockQuantity)" type="button">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-add-to-cart" onclick="addToCartFromDetail()" type="button">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            Add to Cart
+                        </button>
+
+                        <button class="btn-wishlist btn-wishlist-large"
+                                onclick="toggleWishlist(@Model.Id)"
+                                data-product-id="@Model.Id"
+                                title="Add to wishlist"
+                                type="button">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn-out-of-stock" disabled type="button">
+                        <i class="fa-solid fa-ban"></i>
+                        Out of Stock
+                    </button>
+                }
+            </div>
+
+            <!-- Additional Info -->
+            <div class="product-meta">
+                <div class="meta-item">
+                    <i class="fa-solid fa-box"></i>
+                    <span>Free shipping on orders over R500</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>30-day return policy</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>1-year warranty</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Shop Button -->
+    <div class="back-to-shop">
+        <a asp-controller="Shop" asp-action="Index" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentProductId = @Model.Id;
+        var maxStock = @maxStockJs;
+
+        function increaseQuantity(max) {
+            var input = document.getElementById('productQuantity');
+            if (!input) return;
+            var currentVal = parseInt(input.value, 10) || 1;
+            if (currentVal < max) input.value = currentVal + 1;
+        }
+
+        function decreaseQuantity() {
+            var input = document.getElementById('productQuantity');
+            if (!input) return;
+            var currentVal = parseInt(input.value, 10) || 1;
+            if (currentVal > 1) input.value = currentVal - 1;
+        }
+
+        function addToCartFromDetail() {
+            var input = document.getElementById('productQuantity');
+            var quantity = input ? (parseInt(input.value, 10) || 1) : 1;
+
+            if (quantity < 1) quantity = 1;
+            if (maxStock > 0 && quantity > maxStock) quantity = maxStock;
+
+            addToCart(currentProductId, quantity);
+        }
+
+        (function () {
+            var qty = document.getElementById('productQuantity');
+            if (!qty) return;
+
+            qty.addEventListener('change', function () {
+                var val = parseInt(this.value, 10) || 1;
+                if (val < 1) val = 1;
+                if (maxStock > 0 && val > maxStock) val = maxStock;
+                this.value = val;
+            });
+        })();
+    </script>
+}

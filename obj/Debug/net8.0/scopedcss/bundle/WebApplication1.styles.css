@@ -1,0 +1,789 @@
+/* _content/WebApplication1/Views/Shared/_Layout.cshtml.rz.scp.css */
+
+/* Container */
+.topbar[b-bddmc6yalx] {
+    background: #0b66c3; /* blue similar to your screenshot */
+    color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 0.95rem;
+}
+
+.topbar__inner[b-bddmc6yalx] {
+    max-width: 1280px; /* adjust to your site width */
+    margin: 0 auto;
+    padding: 0.45rem 1rem; /* bar height & horizontal padding */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* left | center | right */
+    gap: 1rem;
+}
+
+/* Left group */
+.topbar__left[b-bddmc6yalx] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem; /* space between each button block */
+    flex: 1 1 33%;
+    min-width: 0;
+}
+
+/* Buttons look flat and clickable */
+.topbar-btn[b-bddmc6yalx] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem; /* tighter icon–label spacing */
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 0.25rem 0.5rem; /* target size */
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+}
+
+    /* Vertical separators between left buttons */
+    .topbar-btn + .topbar-btn[b-bddmc6yalx] {
+        margin-left: 0.6rem;
+    }
+
+        .topbar-btn + .topbar-btn[b-bddmc6yalx]::before {
+            content: "";
+            position: absolute;
+            left: -0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 1.1rem;
+            background: rgba(255,255,255,0.6);
+        }
+
+    /* Icons */
+    .topbar-btn i[b-bddmc6yalx] {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    /* Hover / focus */
+    .topbar-btn:hover[b-bddmc6yalx],
+    .topbar-btn:focus-visible[b-bddmc6yalx] {
+        color: #eaf3ff;
+    }
+
+    .topbar-btn:focus-visible[b-bddmc6yalx] {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+        border-radius: 4px;
+    }
+
+/* Center text */
+.topbar__center[b-bddmc6yalx] {
+    flex: 1 1 33%;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Right address */
+.topbar__right[b-bddmc6yalx] {
+    flex: 1 1 33%;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.topbar-address[b-bddmc6yalx] {
+    margin: 0;
+    font-style: normal; /* keep it non-italic */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive behaviors */
+@media (max-width: 992px) {
+    .topbar__center[b-bddmc6yalx] {
+        display: none;
+    }
+    /* hide tagline on medium screens */
+}
+
+@media (max-width: 576px) {
+    .topbar__inner[b-bddmc6yalx] {
+        flex-wrap: wrap;
+        row-gap: 0.4rem;
+    }
+
+    .topbar__left[b-bddmc6yalx] {
+        flex: 1 1 100%;
+        order: 1;
+    }
+
+    .topbar__right[b-bddmc6yalx] {
+        flex: 1 1 100%;
+        order: 2;
+        justify-content: flex-start;
+    }
+
+    .topbar-btn + .topbar-btn[b-bddmc6yalx]::before {
+        height: 1rem;
+    }
+}
+
+
+
+a.navbar-brand[b-bddmc6yalx] {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+
+
+.btn-primary[b-bddmc6yalx] {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-bddmc6yalx], .nav-pills .show > .nav-link[b-bddmc6yalx] {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.border-top[b-bddmc6yalx] {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom[b-bddmc6yalx] {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-bddmc6yalx] {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-bddmc6yalx] {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+
+body[b-bddmc6yalx] {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container[b-bddmc6yalx] {
+    flex: 1;
+}
+
+
+
+
+
+
+/*************
+ * 1) RESET ALL HEADER BUTTONS TO LOOK LIKE LINKS
+ *************/
+.main-header button[b-bddmc6yalx] {
+    /* remove native button look */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+/* Exception: buttons inside Bootstrap's account dropdown menu need the
+   normal .dropdown-item padding so they line up with the <a> items
+   (Dashboard, Profile, etc). !important is used to override the broad
+   .main-header button reset above, regardless of scope-CSS hashes. */
+.main-header .dropdown-menu button.dropdown-item[b-bddmc6yalx],
+.dropdown-menu button.dropdown-item[b-bddmc6yalx] {
+    padding: .5rem .6rem !important;
+    line-height: 1.5 !important;
+    color: #0a0a0a !important;
+    text-align: left !important;
+    width: 100% !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+    .main-header .dropdown-menu button.dropdown-item:hover[b-bddmc6yalx],
+    .main-header .dropdown-menu button.dropdown-item:focus[b-bddmc6yalx],
+    .dropdown-menu button.dropdown-item:hover[b-bddmc6yalx],
+    .dropdown-menu button.dropdown-item:focus[b-bddmc6yalx] {
+        background: rgba(11, 102, 195, .08) !important;
+        color: #0a0a0a !important;
+    }
+
+/* keep the header layout slick */
+.main-header[b-bddmc6yalx] {
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+.main-header__inner[b-bddmc6yalx] {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: .6rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto; /* left menu | right actions */
+    align-items: center;
+    column-gap: 1rem;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/*************
+ * 2) TOP-LEVEL MENU (flat, bold, uppercase)
+ *************/
+.menu[b-bddmc6yalx] {
+    display: inline-flex;
+    gap: 2rem; /* spacing like the reference */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+
+
+/* Base button styling */
+.menu-btn[b-bddmc6yalx] {
+    background: transparent;
+    border: none;
+    color: #2b2b2b;
+    font: inherit;
+    letter-spacing: .5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 2px;
+}
+
+/* Caret only for the SHOP button */
+.shop-btn[b-bddmc6yalx]::after {
+    content: "▾"; /* down caret */
+    display: inline-block;
+    font-size: 12px;
+    line-height: 1;
+    color: #808080; /* grey */
+    transition: transform .18s ease, color .18s ease;
+    transform-origin: 50% 45%;
+}
+
+/* Hover/focus: darker grey */
+.shop-btn:hover[b-bddmc6yalx]::after,
+.shop-btn:focus-visible[b-bddmc6yalx]::after {
+    color: #666666;
+}
+
+/* Rotate when dropdown is open (driven by aria-expanded) */
+.shop-btn[aria-expanded="true"][b-bddmc6yalx]::after {
+    transform: rotate(180deg); /* points up when open */
+}
+
+
+    .menu-btn:hover[b-bddmc6yalx],
+    .menu-btn:focus-visible[b-bddmc6yalx] {
+        color: #0b66c3;
+    }
+
+/* caret on items that need it */
+.has-caret .menu-btn[b-bddmc6yalx]::after {
+    content: " \f0d7"; /* Font Awesome caret-down */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: .72rem;
+    margin-left: .35rem;
+    color: currentColor;
+}
+
+/*************
+ * 3) SHOP DROPDOWN PANEL (floating white card under SHOP)
+ *************/
+
+
+/* The menu item acts as the positioning anchor */
+.menu__item[b-bddmc6yalx] {
+    position: relative;
+}
+
+/* Floating panel (card) aligned under SHOP */
+.dropdown-panel[b-bddmc6yalx] {
+    position: absolute;
+    /* Choose alignment: left with SHOP text, or right aligned with the button */
+    left: 0; /* change to: right: 0; left: auto; for right alignment */
+    top: calc(100% + .6rem); /* sits just below the menu row */
+
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 8px;
+    padding: .5rem;
+    box-shadow: 0 10px 28px rgba(0,0,0,.14);
+    z-index: 1000;
+    /* smooth reveal */
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .15s ease, transform .15s ease;
+}
+
+    /* Keep hidden but allow transition when shown */
+    .dropdown-panel[hidden][b-bddmc6yalx] {
+        display: block; /* enables the transition while hidden */
+        opacity: 0;
+        pointer-events: none;
+    }
+
+/* When the wrapper gets .open (via JS), show the panel */
+.dropdown.open .dropdown-panel[b-bddmc6yalx] {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Stack items vertically and make them full width */
+.dropdown-panel[b-bddmc6yalx] {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.dropdown-item[b-bddmc6yalx] {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: .5rem .6rem;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: #0a0a0a;
+    font-size: .92rem;
+    font-weight: 500;
+}
+
+    .dropdown-item:hover[b-bddmc6yalx],
+    .dropdown-item:focus-visible[b-bddmc6yalx] {
+        background: rgba(11,102,195,.08);
+        outline: none;
+    }
+
+/* Optional: keep the caret next to SHOP (you already have this) */
+.has-caret .menu-btn[b-bddmc6yalx]::after {
+    content: " \f0d7";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: .72rem;
+    margin-left: .35rem;
+    color: currentColor;
+}
+
+
+
+
+/*************
+ * 4) RIGHT ACTIONS (login/heart/cart)
+ *************/
+.header-actions[b-bddmc6yalx] {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25rem;
+    white-space: nowrap;
+    justify-self: end;
+}
+
+.action-link[b-bddmc6yalx] {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: #555;
+    font-size: .92rem;
+}
+
+    .action-link i[b-bddmc6yalx] {
+        color: #c2332b;
+    }
+    /* red accent icon */
+    .action-link:hover[b-bddmc6yalx] {
+        color: #0b66c3;
+    }
+
+.icon-link[b-bddmc6yalx] {
+    color: #c2332b;
+    font-size: 1rem;
+}
+
+    .icon-link:hover[b-bddmc6yalx] {
+        color: #0b66c3;
+    }
+
+.cart-count[b-bddmc6yalx] {
+    font-weight: 700;
+    color: #0b66c3;
+}
+
+/*************
+ * 5) OPTIONAL: keep mobile reasonable
+ *************/
+@media (max-width: 992px) {
+    .menu[b-bddmc6yalx] {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .dropdown-panel[b-bddmc6yalx] {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .menu-btn[b-bddmc6yalx] {
+        font-size: .9rem;
+    }
+
+    .action-link span[b-bddmc6yalx] {
+        display: none;
+    }
+    /* show icon only for tiny screens */
+}
+
+
+
+
+/***** FOOTER — Pic 2 look *****/
+
+/* Base */
+.footer[b-bddmc6yalx] {
+    background: #eef2f5; /* lighter, cooler grey like pic 2 */
+    padding: 28px 24px 10px; /* tighten top, keep bottom slim */
+    color: #2b2b2b;
+    margin-top: auto;
+    border-top: 1px solid rgba(0,0,0,.06);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Grid: 5 columns with a bit more space between */
+.footer-content[b-bddmc6yalx] {
+    max-width: 1400px; /* slightly narrower than 1600 for tighter look */
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 0.9fr 0.9fr 0.9fr 1.4fr; /* left contact a bit wider, right company widest */
+    gap: 36px; /* more breathing room between columns */
+    margin-bottom: 10px;
+}
+
+/* Column headings */
+.footer-section h3[b-bddmc6yalx] {
+    font-size: 13px;
+    font-weight: 800;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: .35px;
+    color: #0a0a0a;
+}
+
+/* Lists */
+.footer-section ul[b-bddmc6yalx] {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+/* bigger vertical rhythm like pic 2 */
+
+.footer-link[b-bddmc6yalx] {
+    color: #808080 !important; /* grey */
+    text-decoration: none !important; /* remove underline */
+    font-size: 14px;
+}
+
+    .footer-link:hover[b-bddmc6yalx] {
+        color: #666666 !important; /* darker grey on hover */
+        text-decoration: none !important;
+    }
+
+
+/* Button that looks like a text link (Pic 2 style) */
+.footer-link-btn[b-bddmc6yalx] {
+    /* remove native button look */
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    appearance: none; /* modern */
+    -webkit-appearance: none; /* Safari */
+    /* link-like typography */
+    color: #808080; /* grey */
+    text-decoration: none; /* no underline */
+    font: inherit; /* use footer font */
+    font-size: 14px;
+    line-height: 1.45;
+    /* spacing reset to sit like a link */
+    padding: 0;
+    margin: 0;
+    /* affordance */
+    cursor: pointer;
+}
+
+    /* Hover → slightly darker grey */
+    .footer-link-btn:hover[b-bddmc6yalx] {
+        color: #666666;
+        text-decoration: none;
+    }
+
+    /* Keep a minimal, accessible focus style (no border box) */
+    .footer-link-btn:focus-visible[b-bddmc6yalx] {
+        outline: 2px solid rgba(0,0,0,0.25);
+        outline-offset: 2px;
+    }
+
+    /* Optional: if you want focus to look like links instead of an outline */
+    .footer-link-btn:focus-visible[b-bddmc6yalx] {
+        outline: none;
+        text-decoration: underline;
+    }
+
+    /* Disabled safety (if ever used) */
+    .footer-link-btn:disabled[b-bddmc6yalx] {
+        color: #a9a9a9;
+        cursor: not-allowed;
+    }
+
+``
+/* brand blue on hover */
+/* Contact block (left column) */
+.contact-info[b-bddmc6yalx] {
+    color: #6f7b85; /* muted grey-blue body text */
+    line-height: 1.7;
+    font-size: 14px;
+}
+
+    .contact-info a[b-bddmc6yalx] {
+        color: #0b66c3; /* email link in brand blue */
+        text-decoration: none;
+    }
+
+        .contact-info a:hover[b-bddmc6yalx] {
+            text-decoration: underline;
+        }
+
+/* Right company block */
+.company-section[b-bddmc6yalx] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Logo row in the company block */
+.logo[b-bddmc6yalx] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px; /* thinner than before */
+}
+
+.logo-boxes[b-bddmc6yalx] {
+    display: flex;
+    gap: 6px; /* a touch more space between squares */
+}
+
+.logo-box[b-bddmc6yalx] {
+    width: 34px;
+    height: 34px;
+    background: #1e5a9e; /* ASC blue squares */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    border-radius: 2px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.05);
+}
+/* If you want the first square blank like the sample, keep inner text empty */
+
+.logo-text[b-bddmc6yalx] {
+    color: #1e5a9e;
+    font-weight: 800;
+    font-size: 15px;
+    line-height: 1.15;
+    white-space: nowrap; /* keep on one line as in pic 2 */
+    letter-spacing: .2px;
+    position: relative;
+}
+    /* underline bar beneath logo (thin brand accent) */
+    .logo-text[b-bddmc6yalx]::after {
+        content: "";
+        display: block;
+        width: 100%;
+        max-width: 240px;
+        height: 3px;
+        background: #1e5a9e;
+        margin-top: 8px;
+        border-radius: 2px;
+    }
+
+/* Short company description under logo row */
+.company-description[b-bddmc6yalx] {
+    color: #26313b;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 6px 0 6px;
+    max-width: 420px; /* wider like in pic 2 */
+}
+
+/* Social block */
+.social-section h4[b-bddmc6yalx] {
+    font-size: 13px;
+    font-weight: 800;
+    margin: 8px 0 8px;
+    color: #0a0a0a;
+}
+
+.social-icons[b-bddmc6yalx] {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.social-icon[b-bddmc6yalx] {
+    width: 28px;
+    height: 28px;
+    background: #24303b; /* near-black circles */
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    transition: transform .15s ease, background .15s ease;
+}
+
+    .social-icon:hover[b-bddmc6yalx] {
+        transform: translateY(-1px);
+    }
+
+    .social-icon.facebook:hover[b-bddmc6yalx] {
+        background: #1877f2;
+    }
+
+    .social-icon.youtube:hover[b-bddmc6yalx] {
+        background: #ff0000;
+    }
+
+/* Bottom strip */
+.footer-bottom[b-bddmc6yalx] {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px; /* slightly larger than 11px */
+    color: #6f7b85;
+}
+
+.footer-bottom-left[b-bddmc6yalx] {
+    color: #6f7b85;
+}
+
+.footer-bottom-right[b-bddmc6yalx] {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.go-to-top[b-bddmc6yalx] {
+    color: #0b66c3;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+    .go-to-top:hover[b-bddmc6yalx] {
+        text-decoration: underline;
+    }
+
+.privacy-link[b-bddmc6yalx] {
+    color: #6f7b85;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+    .privacy-link:hover[b-bddmc6yalx] {
+        color: #0b66c3;
+    }
+
+/* Responsive tweaks (Pic 2 maintains columns nicely then stacks) */
+@media (max-width: 1200px) {
+    .footer-content[b-bddmc6yalx] {
+        max-width: 100%;
+        grid-template-columns: 1.1fr 1fr 1fr 1fr; /* merge company into next row */
+    }
+
+    .company-section[b-bddmc6yalx] {
+        grid-column: 1 / -1;
+        margin-top: 8px;
+    }
+
+    .logo-text[b-bddmc6yalx]::after {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 992px) {
+    .footer-content[b-bddmc6yalx] {
+        grid-template-columns: 1fr 1fr; /* two columns */
+        gap: 28px;
+    }
+
+    .company-section[b-bddmc6yalx] {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer[b-bddmc6yalx] {
+        padding: 18px 16px 10px;
+    }
+
+    .footer-content[b-bddmc6yalx] {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .footer-bottom[b-bddmc6yalx] {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .logo-text[b-bddmc6yalx]::after {
+        max-width: 140px;
+    }
+}
+
+
+
+

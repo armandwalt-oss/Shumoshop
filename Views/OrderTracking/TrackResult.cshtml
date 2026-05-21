@@ -1,0 +1,112 @@
+﻿@model WebApplication1.Models.Order
+@{
+    ViewData["Title"] = "Order Status";
+}
+
+<link href="~/css/ordertracking.css" rel="stylesheet" />
+
+<div class="tracking-page">
+    <div class="tracking-container">
+        <div class="tracking-header">
+            <h1>Order Status</h1>
+            <p>Track the progress of your order</p>
+        </div>
+
+        <div class="order-details-card">
+            <div class="order-header">
+                <div>
+                    <h2>Order #@Model.OrderNumber</h2>
+                    <p class="order-date">Placed on @Model.OrderDate.ToString("MMMM dd, yyyy")</p>
+                </div>
+                <div class="status-badge @Model.Status.ToLower().Replace(" ", "-")">
+                    @Model.Status
+                </div>
+            </div>
+
+            <div class="customer-info">
+                <h3>Customer Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Name:</strong>
+                        <span>@Model.CustomerName</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="info-item">
+                            <strong>Email:</strong>
+                            <span>@Model.Email</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <div class="info-item">
+                            <strong>Phone:</strong>
+                            <span>@Model.PhoneNumber</span>
+                        </div>
+                    }
+                    @if (Model.EstimatedDelivery.HasValue)
+                    {
+                        <div class="info-item">
+                            <strong>Estimated Delivery:</strong>
+                            <span>@Model.EstimatedDelivery.Value.ToString("MMMM dd, yyyy")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- NEW: Tracking Information Section -->
+            @if (!string.IsNullOrEmpty(Model.TrackingNumber) || !string.IsNullOrEmpty(Model.Carrier))
+            {
+                <div class="tracking-info-section">
+                    <h3>
+                        <i class="fa-solid fa-truck-fast"></i>
+                        Tracking Information
+                    </h3>
+                    <div class="tracking-details-box">
+                        @if (!string.IsNullOrEmpty(Model.Carrier))
+                        {
+                            <div class="tracking-item">
+                                <strong>Courier Company:</strong>
+                                <span>@Model.Carrier</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                        {
+                            <div class="tracking-item">
+                                <strong>Tracking Number:</strong>
+                                <span>@Model.TrackingNumber</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.TrackingLink))
+                        {
+                            <a href="@Model.TrackingLink" target="_blank" class="btn-track-package-public">
+                                <i class="fa-solid fa-location-dot"></i>
+                                Track Your Package
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Notes) || !string.IsNullOrEmpty(Model.CustomerComments))
+            {
+                <div class="order-notes">
+                    <h3>Additional Information</h3>
+                    @if (!string.IsNullOrEmpty(Model.CustomerComments))
+                    {
+                        <p><strong>Your Comments:</strong> @Model.CustomerComments</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <p><strong>Order Notes:</strong> @Model.Notes</p>
+                    }
+                </div>
+            }
+
+            <div class="action-buttons">
+                <a asp-action="Index" class="btn-secondary">Track Another Order</a>
+                <a asp-controller="ContactUs" asp-action="Index" class="btn-primary">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>

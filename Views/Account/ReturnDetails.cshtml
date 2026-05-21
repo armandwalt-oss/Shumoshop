@@ -1,0 +1,238 @@
+﻿@model WebApplication1.Models.ReturnRequest
+
+@{
+    ViewData["Title"] = "Return Details";
+}
+
+<link href="~/css/returns.css" rel="stylesheet" />
+
+<div class="return-details-page">
+    <a href="/Account/MyReturns" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to My Returns
+    </a>
+
+    <div class="page-header">
+        <h1>Return Request #@Model.Id</h1>
+        <span class="status-badge status-@Model.Status.ToLower()">
+            @Model.Status
+        </span>
+    </div>
+
+    <div class="details-grid">
+        <!-- Product Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-box"></i> Product Information</h2>
+
+            <div class="product-display">
+                @if (!string.IsNullOrEmpty(Model.OrderItem?.ImageUrl))
+                {
+                    <img src="@Model.OrderItem.ImageUrl" alt="@Model.OrderItem.ProductName" class="product-image" />
+                }
+                else
+                {
+                    <img src="/images/no-image.jpg" alt="No image" class="product-image" />
+                }
+
+                <div class="product-info">
+                    <h3>@Model.OrderItem?.ProductName</h3>
+                    <p><strong>SKU:</strong> @Model.OrderItem?.ProductSKU</p>
+                    <p><strong>Quantity:</strong> @Model.OrderItem?.Quantity</p>
+                    <p><strong>Unit Price:</strong> R @Model.OrderItem?.UnitPrice.ToString("N2")</p>
+                    <p><strong>Total Price:</strong> R @Model.OrderItem?.TotalPrice.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Information -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-info-circle"></i> Return Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Request Date</div>
+                    <div class="info-value">@Model.RequestDate.ToString("MMM dd, yyyy")</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Order Number</div>
+                    <div class="info-value">#@Model.Order?.OrderNumber</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Refund Amount</div>
+                    <div class="info-value">R @Model.RefundAmount.ToString("N2")</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ReturnAuthorizationNumber))
+                {
+                    <div class="info-item">
+                        <div class="info-label">Authorization Number</div>
+                        <div class="info-value">@Model.ReturnAuthorizationNumber</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                {
+                    <div class="info-item">
+                        <div class="info-label">Tracking Number</div>
+                        <div class="info-value">@Model.TrackingNumber</div>
+                    </div>
+                }
+
+                @if (Model.ApprovedDate.HasValue)
+                {
+                    <div class="info-item">
+                        <div class="info-label">Approved Date</div>
+                        <div class="info-value">@Model.ApprovedDate.Value.ToString("MMM dd, yyyy")</div>
+                    </div>
+                }
+            </div>
+
+            <div class="reason-box">
+                <h4><i class="fa-solid fa-comment"></i> Return Reason</h4>
+                <p><strong>@Model.ReturnReason</strong></p>
+                @if (!string.IsNullOrEmpty(Model.DetailedReason))
+                {
+                    <p style="margin-top: 10px;">@Model.DetailedReason</p>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+            {
+                <div class="admin-notes">
+                    <h4><i class="fa-solid fa-user-tie"></i> Admin Notes</h4>
+                    <p>@Model.AdminNotes</p>
+                </div>
+            }
+        </div>
+
+        <!-- Return Timeline -->
+        <div class="detail-section">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Return Progress</h2>
+
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="timeline-dot"><i class="fa-solid fa-check"></i></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Return Requested</div>
+                        <div class="timeline-date">@Model.RequestDate.ToString("MMMM dd, yyyy - hh:mm tt")</div>
+                        <div class="timeline-description">
+                            You submitted a return request for this item.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item @(Model.Status == "Approved" || Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded" ? "completed" : Model.Status == "Pending" ? "active" : "")">
+                    <div class="timeline-dot">
+                        @if (Model.Status == "Approved" || Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded")
+                        {
+                            <i class="fa-solid fa-check"></i>
+                        }
+                        else if (Model.Status == "Pending")
+                        {
+                            <i class="fa-solid fa-spinner"></i>
+                        }
+                        else
+                        {
+                            <span>2</span>
+                        }
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Request @(Model.Status == "Approved" || Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded" ? "Approved" : Model.Status == "Rejected" ? "Rejected" : "Under Review")</div>
+                        @if (Model.ApprovedDate.HasValue)
+                        {
+                            <div class="timeline-date">@Model.ApprovedDate.Value.ToString("MMMM dd, yyyy - hh:mm tt")</div>
+                        }
+                        <div class="timeline-description">
+                            @if (Model.Status == "Approved" || Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded")
+                            {
+                                <text>Your return request has been approved. You'll receive shipping instructions via email.</text>
+                            }
+                            else if (Model.Status == "Rejected")
+                            {
+                                <text>Unfortunately, your return request was not approved.</text>
+                            }
+                            else
+                            {
+                                <text>We're reviewing your return request. This usually takes 24-48 hours.</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item @(Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded" ? "completed" : Model.Status == "Approved" ? "active" : "")">
+                    <div class="timeline-dot">
+                        @if (Model.Status == "Shipped" || Model.Status == "Received" || Model.Status == "Refunded")
+                        {
+                            <i class="fa-solid fa-check"></i>
+                        }
+                        else
+                        {
+                            <span>3</span>
+                        }
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Item Shipped Back</div>
+                        <div class="timeline-description">
+                            Ship the item back to us using the provided instructions.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item @(Model.Status == "Received" || Model.Status == "Refunded" ? "completed" : Model.Status == "Shipped" ? "active" : "")">
+                    <div class="timeline-dot">
+                        @if (Model.Status == "Received" || Model.Status == "Refunded")
+                        {
+                            <i class="fa-solid fa-check"></i>
+                        }
+                        else
+                        {
+                            <span>4</span>
+                        }
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Item Received</div>
+                        @if (Model.ReceivedDate.HasValue)
+                        {
+                            <div class="timeline-date">@Model.ReceivedDate.Value.ToString("MMMM dd, yyyy")</div>
+                        }
+                        <div class="timeline-description">
+                            We've received your return and are inspecting it.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item @(Model.Status == "Refunded" ? "completed" : Model.Status == "Received" ? "active" : "")">
+                    <div class="timeline-dot">
+                        @if (Model.Status == "Refunded")
+                        {
+                            <i class="fa-solid fa-check"></i>
+                        }
+                        else
+                        {
+                            <span>5</span>
+                        }
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Refund Processed</div>
+                        @if (Model.RefundedDate.HasValue)
+                        {
+                            <div class="timeline-date">@Model.RefundedDate.Value.ToString("MMMM dd, yyyy")</div>
+                        }
+                        <div class="timeline-description">
+                            Your refund has been processed. It should appear in your account within 7-10 business days.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="/Account/MyReturns" class="btn btn-primary">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to All Returns
+        </a>
+    </div>
+</div>
