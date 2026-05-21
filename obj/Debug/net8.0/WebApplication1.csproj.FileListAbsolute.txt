@@ -9,7 +9,6 @@ C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\WebApplication1.pdb
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Azure.Identity.dll
-C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Elasticsearch.Net.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Humanizer.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
@@ -59,7 +58,6 @@ C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Microsoft.VisualStudio.Web.CodeGenerators.Mvc.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Mono.TextTemplating.dll
-C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Nest.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\NuGet.Common.dll
 C:\Users\10027748\Source\Repos\WebApplication1\WebApplication1\bin\Debug\net8.0\NuGet.Configuration.dll

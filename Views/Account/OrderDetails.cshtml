@@ -244,18 +244,33 @@
             </div>
         </div>
 
-@section Scripts {
-            <script>
-                function reorder(orderId) {
-                    if (confirm('Add all items from this order to your cart?')) {
-                        // TODO: Implement reorder functionality
-                        alert('Reorder functionality coming soon!');
-                    }
-                }
+@* Anti-forgery token used by the JS reorder() function below. *@
+@Html.AntiForgeryToken()
 
-                function downloadInvoice(orderId) {
-                    // TODO: Implement invoice download
-                    alert('Invoice download coming soon!');
-                }
-            </script>
+@section Scripts {
+    <script>
+        function reorder(orderId) {
+            if (!confirm('Add all items from this order to your cart?')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Account/Reorder/' + orderId;
+
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function downloadInvoice(orderId) {
+            // Opens the printable invoice in a new tab. Browser's
+            // Print → Save as PDF then gives the user a PDF download.
+            window.open('/Account/Invoice/' + orderId, '_blank');
+        }
+    </script>
 }

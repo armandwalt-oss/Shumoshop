@@ -259,12 +259,61 @@ namespace WebApplication1.Controllers
         }
 
         // Helper Methods
+
+        /// <summary>
+        /// Format: ORD-YYYYMMDD-XXXX (e.g. ORD-20260521-0001).
+        ///
+        /// The OLD implementation was:
+        ///   var count = _context.Orders.Count(...) + 1;
+        /// Two concurrent checkouts both read the same count and produce
+        /// the same number, then one of the saves fails on the unique
+        /// index we now have on OrderNumber.
+        ///
+        /// This version finds Max(sequence) + 1 inside a short retry loop
+        /// and appends a 4-char random suffix on the final attempt as a
+        /// last-resort dedupe. Combined with the DB unique index, a
+        /// duplicate is impossible.
+        /// </summary>
         private string GenerateOrderNumber()
         {
-            // Format: ORD-YYYYMMDD-XXXX (e.g., ORD-20250119-0001)
+            const int maxAttempts = 5;
             var today = DateTime.Now.ToString("yyyyMMdd");
-            var count = _context.Orders.Count(o => o.OrderDate.Date == DateTime.Today) + 1;
-            return $"ORD-{today}-{count:D4}";
+            var prefix = $"ORD-{today}-";
+
+            // Highest sequence used today.
+            var maxToday = _context.Orders
+                .Where(o => o.OrderDate.Date == DateTime.Today)
+                .Select(o => o.OrderNumber)
+                .Where(n => n.StartsWith(prefix))
+                .ToList()
+                .Select(n =>
+                {
+                    var tail = n.Substring(prefix.Length);
+                    var seqPart = tail.Length >= 4 ? tail.Substring(0, 4) : tail;
+                    return int.TryParse(seqPart, out var v) ? v : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                var seq = maxToday + 1 + attempt;
+                var candidate = $"{prefix}{seq:D4}";
+
+                if (attempt == maxAttempts - 1)
+                {
+                    // Final attempt — append a short random suffix.
+                    candidate += "-" + Guid.NewGuid().ToString("N").Substring(0, 4).ToUpperInvariant();
+                }
+
+                if (!_context.Orders.Any(o => o.OrderNumber == candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            // Unreachable, but keeps the compiler happy.
+            return $"{prefix}{Guid.NewGuid().ToString("N").Substring(0, 6).ToUpperInvariant()}";
         }
 
         /// <summary>

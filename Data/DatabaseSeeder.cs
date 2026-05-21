@@ -79,39 +79,72 @@ namespace WebApplication1.Data
                 return;
             }
 
-            // 1) Top-level Category
-            var topCategory = new Category
-            {
-                Name = seed.Category?.Name ?? "Automotive Clips & Fasteners",
-                Description = seed.Category?.Description ?? "Automotive clips and fasteners.",
-                IconName = seed.Category?.IconName ?? "fa-solid fa-screwdriver-wrench",
-                DisplayOrder = 1,
-                IsActive = true
-            };
-            await context.Categories.AddAsync(topCategory);
-            await context.SaveChangesAsync();
+            // 1) Top-level Category — find-or-create by name. The previous
+            //    implementation unconditionally inserted, so wiping Products
+            //    and re-running this seeder produced duplicate categories.
+            var topCategoryName = seed.Category?.Name ?? "Automotive Clips & Fasteners";
+            var topCategory = await context.Categories
+                .FirstOrDefaultAsync(c => c.Name == topCategoryName);
 
-            // 2) SubCategories — keep a lookup by raw key so we can wire products
+            if (topCategory is null)
+            {
+                topCategory = new Category
+                {
+                    Name = topCategoryName,
+                    Description = seed.Category?.Description ?? "Automotive clips and fasteners.",
+                    IconName = seed.Category?.IconName ?? "fa-solid fa-screwdriver-wrench",
+                    DisplayOrder = 1,
+                    IsActive = true
+                };
+                await context.Categories.AddAsync(topCategory);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Created top-level category '{Name}'.", topCategoryName);
+            }
+            else
+            {
+                logger.LogInformation("Reusing existing top-level category '{Name}' (Id={Id}).",
+                    topCategoryName, topCategory.Id);
+            }
+
+            // 2) SubCategories — find-or-create per (Name, parent CategoryId).
+            //    Keep a lookup by raw key so we can wire products.
+            var existingSubs = await context.SubCategories
+                .Where(s => s.CategoryId == topCategory.Id)
+                .ToListAsync();
+
             var subLookup = new Dictionary<string, SubCategory>(StringComparer.OrdinalIgnoreCase);
             if (seed.SubCategories is not null)
             {
+                int created = 0, reused = 0;
                 foreach (var s in seed.SubCategories)
                 {
-                    var sub = new SubCategory
+                    var existing = existingSubs.FirstOrDefault(es =>
+                        string.Equals(es.Name, s.Name, StringComparison.OrdinalIgnoreCase));
+
+                    if (existing is not null)
                     {
-                        Name = s.Name,
-                        Description = $"{s.Name} — automotive clips and fasteners.",
-                        IconName = "fa-solid fa-screwdriver-wrench",
-                        DisplayOrder = s.DisplayOrder,
-                        IsActive = true,
-                        CategoryId = topCategory.Id
-                    };
-                    await context.SubCategories.AddAsync(sub);
-                    subLookup[s.RawKey] = sub;
+                        subLookup[s.RawKey] = existing;
+                        reused++;
+                    }
+                    else
+                    {
+                        var sub = new SubCategory
+                        {
+                            Name = s.Name,
+                            Description = $"{s.Name} — automotive clips and fasteners.",
+                            IconName = "fa-solid fa-screwdriver-wrench",
+                            DisplayOrder = s.DisplayOrder,
+                            IsActive = true,
+                            CategoryId = topCategory.Id
+                        };
+                        await context.SubCategories.AddAsync(sub);
+                        subLookup[s.RawKey] = sub;
+                        created++;
+                    }
                 }
-                await context.SaveChangesAsync();
+                if (created > 0) await context.SaveChangesAsync();
+                logger.LogInformation("Subcategories: created {Created}, reused {Reused}.", created, reused);
             }
-            logger.LogInformation("Seeded 1 category and {Count} subcategories.", subLookup.Count);
 
             // 3) Products — bulk insert in batches to keep memory and SQL chatter sane
             const int batchSize = 250;

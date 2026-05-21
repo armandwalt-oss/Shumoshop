@@ -171,13 +171,27 @@
     }
 </div>
 
+@* Anti-forgery token used by the JS reorder() function below. *@
+@Html.AntiForgeryToken()
+
 @section Scripts {
     <script>
         function reorder(orderId) {
-            if (confirm('Add all items from this order to your cart?')) {
-                // TODO: Implement reorder functionality
-                alert('Reorder functionality coming soon!');
-            }
+            if (!confirm('Add all items from this order to your cart?')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Account/Reorder/' + orderId;
+
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 }

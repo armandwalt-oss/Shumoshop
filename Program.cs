@@ -8,7 +8,11 @@ using WebApplication1.Services; // ADD THIS LINE
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+// AddSessionStateTempDataProvider switches TempData from cookie storage
+// (limited to ~4 KB) to session storage. Required for the bulk CSV upload
+// flow which stashes the parsed file in TempData between preview and commit.
+builder.Services.AddControllersWithViews()
+    .AddSessionStateTempDataProvider();
 
 // Add this line to register your DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -104,6 +108,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseSecurityHeaders();
 app.UseStaticFiles();
 app.UseResponseCompression();
 app.UseRouting();

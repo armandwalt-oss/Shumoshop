@@ -38,64 +38,112 @@ namespace WebApplication1.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
             var response = new ErrorResponse
             {
-                StatusCode = context.Response.StatusCode,
+                StatusCode = (int)HttpStatusCode.InternalServerError,
                 Message = "An error occurred while processing your request."
             };
 
-            // In development, include detailed error information
+            // Handle specific exception types
+            switch (exception)
+            {
+                case UnauthorizedAccessException:
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    response.Message = "You are not authorized to access this resource.";
+                    break;
+
+                case KeyNotFoundException:
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    response.Message = "The requested resource was not found.";
+                    break;
+
+                case ArgumentException:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    response.Message = "Invalid request parameters.";
+                    break;
+
+                case InvalidOperationException:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    response.Message = "The operation could not be completed.";
+                    break;
+            }
+
             if (_env.IsDevelopment())
             {
                 response.DeveloperMessage = exception.Message;
                 response.StackTrace = exception.StackTrace;
             }
 
-            // Handle specific exception types
-            switch (exception)
+            context.Response.StatusCode = response.StatusCode;
+
+            // Decide whether to render HTML or JSON. Browsers send
+            // "Accept: text/html,...", AJAX/API clients typically send
+            // "application/json" or "*/*" without text/html. Render HTML
+            // to humans, JSON to machines.
+            var accept = context.Request.Headers.Accept.ToString();
+            var wantsHtml = accept.Contains("text/html", StringComparison.OrdinalIgnoreCase);
+
+            if (wantsHtml)
             {
-                case UnauthorizedAccessException:
-                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    response.StatusCode = context.Response.StatusCode;
-                    response.Message = "You are not authorized to access this resource.";
-                    break;
+                context.Response.ContentType = "text/html; charset=utf-8";
+                await context.Response.WriteAsync(BuildHtml(response));
+            }
+            else
+            {
+                context.Response.ContentType = "application/json";
+                var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await context.Response.WriteAsync(jsonResponse);
+            }
+        }
 
-                case KeyNotFoundException:
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    response.StatusCode = context.Response.StatusCode;
-                    response.Message = "The requested resource was not found.";
-                    break;
+        private static string BuildHtml(ErrorResponse r)
+        {
+            // Tiny inline HTML so we don't need a Razor view (we're past the
+            // MVC pipeline by the time this runs). Keep it minimal but on-brand.
+            var dev = "";
+            if (!string.IsNullOrEmpty(r.DeveloperMessage))
+            {
+                var msg = System.Net.WebUtility.HtmlEncode(r.DeveloperMessage);
+                var trace = System.Net.WebUtility.HtmlEncode(r.StackTrace ?? "");
+                dev = $@"
+                    <details style='margin-top:24px; text-align:left;'>
+                        <summary style='cursor:pointer; color:#6b7280;'>Developer details</summary>
+                        <pre style='background:#f3f4f6; padding:12px; border-radius:6px; overflow:auto; font-size:12px;'>{msg}
 
-                case ArgumentException:
-                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    response.StatusCode = context.Response.StatusCode;
-                    response.Message = "Invalid request parameters.";
-                    if (_env.IsDevelopment())
-                    {
-                        response.DeveloperMessage = exception.Message;
-                    }
-                    break;
-
-                case InvalidOperationException:
-                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    response.StatusCode = context.Response.StatusCode;
-                    response.Message = "The operation could not be completed.";
-                    break;
-
-                default:
-                    // Generic 500 error
-                    break;
+{trace}</pre>
+                    </details>";
             }
 
-            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            await context.Response.WriteAsync(jsonResponse);
+            return $@"<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8' />
+    <title>{r.StatusCode} — ShumoShop</title>
+    <style>
+        body {{ font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+                 background: #f3f4f6; color: #1f2937; margin: 0; padding: 40px 20px; }}
+        .card {{ max-width: 600px; margin: 60px auto; background: #fff; padding: 40px;
+                 border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.08); text-align: center; }}
+        h1 {{ color: #0b66c3; font-size: 64px; margin: 0; }}
+        h2 {{ font-size: 20px; margin: 12px 0 16px; }}
+        p  {{ color: #6b7280; line-height: 1.6; }}
+        a.btn {{ display: inline-block; margin-top: 20px; background: #0b66c3; color: #fff;
+                 text-decoration: none; padding: 10px 24px; border-radius: 6px; }}
+    </style>
+</head>
+<body>
+    <div class='card'>
+        <h1>{r.StatusCode}</h1>
+        <h2>{System.Net.WebUtility.HtmlEncode(r.Message)}</h2>
+        <p>Sorry — something went wrong. If this keeps happening, please contact support.</p>
+        <a class='btn' href='/'>Back to home</a>
+        {dev}
+    </div>
+</body>
+</html>";
         }
 
         private class ErrorResponse

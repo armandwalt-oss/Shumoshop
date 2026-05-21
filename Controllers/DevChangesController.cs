@@ -28,81 +28,83 @@ namespace WebApplication1.Controllers
         }
 
         // GET: DevChanges
-        public async Task<IActionResult> Index(string section = "products")
+        // Supports an optional searchTerm + page so the product list is
+        // fully paginated. Defaults to first 25 ordered by name.
+        public async Task<IActionResult> Index(
+            string section = "products",
+            string? searchTerm = null,
+            int page = 1,
+            int pageSize = 25)
         {
-            // Get top 10 products
-            var products = await _context.Products
+            // Clamp paging to sane values
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 25;
+            if (pageSize > 200) pageSize = 200;
+
+            var productQuery = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.SubCategory)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var s = searchTerm.Trim();
+                productQuery = productQuery.Where(p =>
+                    p.Name.Contains(s) ||
+                    p.SKU.Contains(s) ||
+                    (p.Category != null && p.Category.Name.Contains(s)) ||
+                    (p.SubCategory != null && p.SubCategory.Name.Contains(s)));
+            }
+
+            var matchingCount = await productQuery.CountAsync();
+            var totalPages = matchingCount == 0 ? 1 : (int)Math.Ceiling(matchingCount / (double)pageSize);
+            if (page > totalPages) page = totalPages;
+
+            var products = await productQuery
                 .OrderBy(p => p.Name)
-                .Take(10)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // Get all categories
             var categories = await _context.Categories
                 .Include(c => c.SubCategories)
                 .OrderBy(c => c.DisplayOrder)
                 .ToListAsync();
 
-            // Get all subcategories
             var subCategories = await _context.SubCategories
                 .Include(sc => sc.Category)
                 .OrderBy(sc => sc.DisplayOrder)
                 .ToListAsync();
 
-            ViewBag.Products = products;
-            ViewBag.Categories = categories;
-            ViewBag.SubCategories = subCategories;
-            ViewBag.TotalProducts = await _context.Products.CountAsync();
-            ViewBag.TotalCategories = categories.Count;
-            ViewBag.TotalSubCategories = subCategories.Count;
-            ViewBag.ActiveSection = section;
+            ViewBag.Products            = products;
+            ViewBag.Categories          = categories;
+            ViewBag.SubCategories       = subCategories;
+            ViewBag.ProductSearchTerm   = searchTerm;
+            ViewBag.TotalProducts       = await _context.Products.CountAsync();
+            ViewBag.TotalCategories     = categories.Count;
+            ViewBag.TotalSubCategories  = subCategories.Count;
+            ViewBag.ActiveSection       = section;
+
+            // Paging metadata
+            ViewBag.ProductPage          = page;
+            ViewBag.ProductPageSize      = pageSize;
+            ViewBag.ProductTotalPages    = totalPages;
+            ViewBag.ProductMatchingCount = matchingCount;
 
             return View();
         }
 
-        // GET: DevChanges/SearchProducts
+        // Back-compat: the search form posts to /DevChanges/SearchProducts.
+        // Forward to Index so paging + search live in one place.
         [HttpGet]
-        public async Task<IActionResult> SearchProducts(string searchTerm)
-        {
-            var products = string.IsNullOrWhiteSpace(searchTerm)
-                ? await _context.Products
-                    .Include(p => p.Category)
-                    .Include(p => p.SubCategory)
-                    .OrderBy(p => p.Name)
-                    .Take(10)
-                    .ToListAsync()
-                : await _context.Products
-                    .Include(p => p.Category)
-                    .Include(p => p.SubCategory)
-                    .Where(p => p.Name.Contains(searchTerm) ||
-                               p.SKU.Contains(searchTerm) ||
-                               p.Category.Name.Contains(searchTerm) ||
-                               p.SubCategory.Name.Contains(searchTerm))
-                    .OrderBy(p => p.Name)
-                    .ToListAsync();
-
-            var categories = await _context.Categories
-                .Include(c => c.SubCategories)
-                .OrderBy(c => c.DisplayOrder)
-                .ToListAsync();
-
-            var subCategories = await _context.SubCategories
-                .Include(sc => sc.Category)
-                .OrderBy(sc => sc.DisplayOrder)
-                .ToListAsync();
-
-            ViewBag.Products = products;
-            ViewBag.Categories = categories;
-            ViewBag.SubCategories = subCategories;
-            ViewBag.ProductSearchTerm = searchTerm;
-            ViewBag.TotalProducts = await _context.Products.CountAsync();
-            ViewBag.TotalCategories = categories.Count;
-            ViewBag.TotalSubCategories = subCategories.Count;
-            ViewBag.ActiveSection = "products";
-
-            return View("Index");
-        }
+        public IActionResult SearchProducts(string? searchTerm, int page = 1, int pageSize = 25) =>
+            RedirectToAction(nameof(Index), new
+            {
+                section = "products",
+                searchTerm,
+                page,
+                pageSize
+            });
 
         // GET: DevChanges/SearchCategories
         [HttpGet]
@@ -260,6 +262,47 @@ namespace WebApplication1.Controllers
             }
 
             return RedirectToAction(nameof(ProductDetails), new { id = model.Id });
+        }
+
+        // POST: DevChanges/RemoveProductImage/5
+        // Clears Product.ImageUrl and best-effort deletes the file from disk.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveProductImage(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product is null) return NotFound();
+
+            try
+            {
+                // Delete the file from disk if it lives under wwwroot/images/products/.
+                // (External URLs are skipped — we only own the local ones.)
+                if (!string.IsNullOrWhiteSpace(product.ImageUrl) &&
+                    product.ImageUrl.StartsWith("/images/products/", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Strip the cache-buster suffix if present, e.g. "?v=12345".
+                    var relativePath = product.ImageUrl.Split('?')[0];
+                    var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    var fullPath = Path.Combine(webRoot, relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        System.IO.File.Delete(fullPath);
+                    }
+                }
+
+                product.ImageUrl = "";
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Image removed.";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error removing image for product {ProductId}", id);
+                TempData["ErrorMessage"] = "Could not remove the image. See server log.";
+            }
+
+            return RedirectToAction(nameof(ProductDetails), new { id });
         }
 
         /// <summary>

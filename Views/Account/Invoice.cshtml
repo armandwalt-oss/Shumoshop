@@ -1,0 +1,282 @@
+@model WebApplication1.Models.Order
+@{
+    Layout = null; // standalone, printable
+    ViewData["Title"] = $"Invoice {Model.OrderNumber}";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invoice @Model.OrderNumber</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+            background: #f3f4f6;
+        }
+        .invoice {
+            max-width: 800px;
+            margin: 24px auto;
+            background: #fff;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #0b66c3;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #0b66c3;
+        }
+        .brand .subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .invoice-meta {
+            text-align: right;
+            font-size: 13px;
+            color: #374151;
+        }
+        .invoice-meta h2 {
+            margin: 0 0 8px;
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+        .meta-row {
+            margin: 4px 0;
+        }
+        .meta-label {
+            color: #6b7280;
+            margin-right: 6px;
+        }
+        .columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 28px;
+        }
+        .columns h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #6b7280;
+            margin: 0 0 8px;
+        }
+        .columns address {
+            font-style: normal;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1f2937;
+        }
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        table.items th {
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #6b7280;
+            background: #f9fafb;
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        table.items td {
+            font-size: 14px;
+            padding: 10px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+        table.items td.num,
+        table.items th.num {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .totals {
+            margin-left: auto;
+            width: 280px;
+        }
+        .totals .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .totals .row.total {
+            border-top: 2px solid #0b66c3;
+            margin-top: 6px;
+            padding-top: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #0b66c3;
+        }
+        .footer-note {
+            margin-top: 36px;
+            padding-top: 18px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+        }
+        .print-bar {
+            max-width: 800px;
+            margin: 16px auto -8px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .btn {
+            background: #0b66c3;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn.secondary {
+            background: #fff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        /* Hide the toolbar when printing — the invoice itself remains. */
+        @@media print {
+            body { background: #fff; }
+            .print-bar { display: none !important; }
+            .invoice {
+                box-shadow: none;
+                padding: 20px 0;
+                margin: 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-bar">
+        <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+        <a class="btn secondary" href="@Url.Action("OrderDetails", "Account", new { id = Model.Id })">Back</a>
+    </div>
+
+    <div class="invoice">
+        <div class="invoice-header">
+            <div class="brand">
+                <h1>ShumoShop</h1>
+                <div class="subtitle">138 Botha Avenue, Lyttelton Manor, Centurion, 0157</div>
+                <div class="subtitle">info@shumoshop.co.za</div>
+            </div>
+            <div class="invoice-meta">
+                <h2>Invoice</h2>
+                <div class="meta-row">
+                    <span class="meta-label">Number:</span><strong>@Model.OrderNumber</strong>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Date:</span>@Model.OrderDate.ToString("dd MMM yyyy")
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Status:</span>@Model.Status
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Payment:</span>@Model.PaymentStatus
+                </div>
+            </div>
+        </div>
+
+        <div class="columns">
+            <div>
+                <h3>Bill to</h3>
+                <address>
+                    @Model.CustomerName @Model.CustomerSurname<br />
+                    @Model.Email<br />
+                    @Model.PhoneNumber
+                </address>
+            </div>
+            <div>
+                <h3>Ship to</h3>
+                <address>
+                    @Model.ShippingAddress<br />
+                    @Model.ShippingCity, @Model.ShippingState<br />
+                    @Model.ShippingPostalCode
+                </address>
+            </div>
+        </div>
+
+        <table class="items">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>SKU</th>
+                    <th class="num">Qty</th>
+                    <th class="num">Unit price</th>
+                    <th class="num">Line total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.OrderItems != null)
+                {
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td>@item.ProductSKU</td>
+                            <td class="num">@item.Quantity</td>
+                            <td class="num">R @item.UnitPrice.ToString("N2")</td>
+                            <td class="num">R @item.TotalPrice.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="row">
+                <span>Subtotal</span>
+                <span>R @Model.Subtotal.ToString("N2")</span>
+            </div>
+            <div class="row">
+                <span>Shipping</span>
+                <span>R @Model.ShippingCost.ToString("N2")</span>
+            </div>
+            <div class="row">
+                <span>VAT (15%)</span>
+                <span>R @Model.Tax.ToString("N2")</span>
+            </div>
+            <div class="row total">
+                <span>Total</span>
+                <span>R @Model.TotalAmount.ToString("N2")</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+        {
+            <div style="margin-top: 24px; font-size: 13px; color: #374151;">
+                <strong>Tracking:</strong> @Model.TrackingNumber
+                @if (!string.IsNullOrEmpty(Model.Carrier))
+                {
+                    <text>&nbsp;via @Model.Carrier</text>
+                }
+            </div>
+        }
+
+        <div class="footer-note">
+            Thank you for shopping with ShumoShop. Questions about this invoice? Email info@shumoshop.co.za.
+        </div>
+    </div>
+</body>
+</html>

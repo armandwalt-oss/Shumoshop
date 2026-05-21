@@ -133,11 +133,10 @@ namespace WebApplication1.Controllers
 
         // ============================================
         // DASHBOARD ACTION (Alternative route)
+        // Redirect to Index so the URL bar stays canonical and MVC doesn't
+        // try to find a "Dashboard.cshtml" view (which doesn't exist).
         // ============================================
-        public async Task<IActionResult> Dashboard()
-        {
-            return await Index();
-        }
+        public IActionResult Dashboard() => RedirectToAction(nameof(Index));
 
         // ============================================
         // ORDERS MANAGEMENT - List All Orders

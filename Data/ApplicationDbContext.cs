@@ -202,6 +202,14 @@ namespace WebApplication1.Data
 
             modelBuilder.Entity<SubCategory>()
                 .HasIndex(sc => sc.Name);
+
+            // Product SKU should be globally unique so bulk-import + manual
+            // edits can't accidentally produce two products with the same
+            // catalogue code. Matches the unique index already on
+            // Order.OrderNumber.
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.SKU)
+                .IsUnique();
         }
     }
 }

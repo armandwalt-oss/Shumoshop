@@ -724,6 +724,119 @@ namespace WebApplication1.Controllers
         }
 
         // ============================================
+        // REORDER — clone a past order's items into the user's active cart.
+        // ============================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reorder(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null) return RedirectToAction("Index", "Login");
+
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == user.Id);
+
+            if (order is null)
+            {
+                TempData["ErrorMessage"] = "Order not found.";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            // Find or create the user's cart.
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart is null)
+            {
+                cart = new Cart
+                {
+                    UserId = user.Id,
+                    CreatedDate = DateTime.Now,
+                    LastModifiedDate = DateTime.Now
+                };
+                _context.Carts.Add(cart);
+                await _context.SaveChangesAsync();
+            }
+
+            int added = 0;
+            int skippedOutOfStock = 0;
+            int skippedMissing = 0;
+
+            foreach (var item in order.OrderItems)
+            {
+                // Pull the live product so we use today's price + stock, not the
+                // historical values captured on the OrderItem snapshot.
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product is null)
+                {
+                    skippedMissing++;
+                    continue;
+                }
+
+                if (!product.InStock || product.StockQuantity <= 0)
+                {
+                    skippedOutOfStock++;
+                    continue;
+                }
+
+                // Cap the requested quantity at currently-available stock.
+                var requested = Math.Min(item.Quantity, product.StockQuantity);
+
+                var existing = cart.CartItems.FirstOrDefault(ci => ci.ProductId == product.Id);
+                if (existing is not null)
+                {
+                    var newTotal = existing.Quantity + requested;
+                    existing.Quantity = Math.Min(newTotal, product.StockQuantity);
+                }
+                else
+                {
+                    cart.CartItems.Add(new CartItem
+                    {
+                        CartId = cart.Id,
+                        ProductId = product.Id,
+                        Quantity = requested,
+                        UnitPrice = product.Price,
+                        AddedDate = DateTime.Now
+                    });
+                }
+                added++;
+            }
+
+            cart.LastModifiedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            // Build a friendly summary message.
+            var parts = new List<string> { $"Added {added} item(s) to your cart." };
+            if (skippedOutOfStock > 0) parts.Add($"{skippedOutOfStock} were out of stock.");
+            if (skippedMissing > 0)    parts.Add($"{skippedMissing} are no longer available.");
+            TempData["SuccessMessage"] = string.Join(" ", parts);
+
+            return RedirectToAction("Index", "Cart");
+        }
+
+        // ============================================
+        // INVOICE — printable HTML invoice. The browser's Print → Save as PDF
+        // does the PDF generation; no extra dependency required.
+        // ============================================
+        [HttpGet]
+        public async Task<IActionResult> Invoice(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null) return RedirectToAction("Index", "Login");
+
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == user.Id);
+
+            if (order is null) return NotFound();
+
+            return View("Invoice", order);
+        }
+
+        // ============================================
         // DELETE ACCOUNT — soft-delete with PII anonymisation.
         // We KEEP the user row and all Orders/OrderItems for audit / tax
         // retention. We REMOVE personally-identifiable data so the customer's

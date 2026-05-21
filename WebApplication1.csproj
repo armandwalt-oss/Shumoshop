@@ -6,18 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Views\Shared\Componets\**" />
-    <Content Remove="Views\Shared\Componets\**" />
-    <EmbeddedResource Remove="Views\Shared\Componets\**" />
-    <None Remove="Views\Shared\Componets\**" />
-  </ItemGroup>
-
-  
 <ItemGroup>
-  <!-- REMOVE: Microsoft.AspNet.Identity.EntityFramework (legacy EF6 package) -->
-
-  <!-- ASP.NET Core Identity EF store (Core) -->
+  <!-- ASP.NET Core Identity EF store -->
   <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.4" />
 
   <!-- EF Core runtime + provider + tools -->
@@ -29,9 +19,10 @@
   </PackageReference>
   <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4" />
 
-  <!-- Your other packages -->
+  <!-- Scaffolding (dev-time only) -->
   <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
-  <PackageReference Include="NEST" Version="7.17.5" />
+
+  <!-- Newtonsoft.Json — used by AccountController for ViewBag.OrderItemsJson -->
   <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 </ItemGroup>
 

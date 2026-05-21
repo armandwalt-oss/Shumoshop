@@ -7,6 +7,12 @@
     var categorySearchTerm = ViewBag.CategorySearchTerm as string;
     var subCategorySearchTerm = ViewBag.SubCategorySearchTerm as string;
     var activeSection = ViewBag.ActiveSection as string ?? "products";
+
+    // Paging metadata for the products tab
+    int productPage          = ViewBag.ProductPage          ?? 1;
+    int productPageSize      = ViewBag.ProductPageSize      ?? 25;
+    int productTotalPages    = ViewBag.ProductTotalPages    ?? 1;
+    int productMatchingCount = ViewBag.ProductMatchingCount ?? 0;
 }
 
 <link rel="stylesheet" href="~/css/DevChanges.css" />
@@ -59,11 +65,11 @@
             <p class="section-subtitle">
                 @if (!string.IsNullOrEmpty(productSearchTerm))
                 {
-                    <text>Search results for "@productSearchTerm"</text>
+                    <text>@productMatchingCount result(s) for "@productSearchTerm" (of @ViewBag.TotalProducts total)</text>
                 }
                 else
                 {
-                    <text>Showing top 10 of @ViewBag.TotalProducts products</text>
+                    <text>@ViewBag.TotalProducts products in catalogue</text>
                 }
             </p>
         </div>
@@ -75,7 +81,7 @@
             </form>
             <div class="action-buttons-group">
                 <div class="results-count">
-                    <span>@products.Count()</span> product(s) found
+                    <span>@productMatchingCount</span> product(s) found
                 </div>
                 <a asp-action="CreateProduct" class="btn-create">
                     <i class="fas fa-plus"></i> Add Product
@@ -178,6 +184,114 @@
                 </tbody>
             </table>
         </div>
+
+        @* ── PAGING CONTROLS ─────────────────────────────────────────────── *@
+        @if (productMatchingCount > 0)
+        {
+            var firstShown = (productPage - 1) * productPageSize + 1;
+            var lastShown  = Math.Min(productPage * productPageSize, productMatchingCount);
+
+            <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding:12px 16px; background:#f8f9fa; border-radius:6px;">
+                <div style="font-size:14px; color:#374151;">
+                    Showing <strong>@firstShown–@lastShown</strong> of <strong>@productMatchingCount</strong>
+                    @(productMatchingCount == 1 ? "product" : "products")
+                    @if (!string.IsNullOrEmpty(productSearchTerm))
+                    {
+                        <text> matching "<em>@productSearchTerm</em>"</text>
+                    }
+                </div>
+
+                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                    @* Page size selector — links rather than a form so it
+                       preserves the current search term. *@
+                    <span style="font-size:13px; color:#6b7280; margin-right:6px;">Per page:</span>
+                    @foreach (var size in new[] { 25, 50, 100, 200 })
+                    {
+                        if (size == productPageSize)
+                        {
+                            <span style="padding:4px 10px; background:#0d6efd; color:#fff; border-radius:4px; font-size:13px;">@size</span>
+                        }
+                        else
+                        {
+                            <a asp-action="Index"
+                               asp-route-section="products"
+                               asp-route-searchTerm="@productSearchTerm"
+                               asp-route-page="1"
+                               asp-route-pageSize="@size"
+                               style="padding:4px 10px; background:#fff; border:1px solid #d1d5db; border-radius:4px; font-size:13px; color:#374151; text-decoration:none;">@size</a>
+                        }
+                    }
+                </div>
+
+                <div style="display:flex; gap:4px; align-items:center;">
+                    @* Prev / Next + numbered pages (max 5 around current). *@
+                    @if (productPage > 1)
+                    {
+                        <a asp-action="Index"
+                           asp-route-section="products"
+                           asp-route-searchTerm="@productSearchTerm"
+                           asp-route-page="@(productPage - 1)"
+                           asp-route-pageSize="@productPageSize"
+                           style="padding:6px 12px; background:#fff; border:1px solid #d1d5db; border-radius:4px; color:#374151; text-decoration:none;">
+                           ‹ Prev
+                        </a>
+                    }
+
+                    @{
+                        int from = Math.Max(1, productPage - 2);
+                        int to   = Math.Min(productTotalPages, productPage + 2);
+                    }
+                    @if (from > 1)
+                    {
+                        <a asp-action="Index"
+                           asp-route-section="products"
+                           asp-route-searchTerm="@productSearchTerm"
+                           asp-route-page="1"
+                           asp-route-pageSize="@productPageSize"
+                           style="padding:6px 10px; color:#374151; text-decoration:none;">1</a>
+                        if (from > 2) { <span style="padding:0 4px; color:#9ca3af;">…</span> }
+                    }
+                    @for (int i = from; i <= to; i++)
+                    {
+                        if (i == productPage)
+                        {
+                            <span style="padding:6px 12px; background:#0d6efd; color:#fff; border-radius:4px;">@i</span>
+                        }
+                        else
+                        {
+                            <a asp-action="Index"
+                               asp-route-section="products"
+                               asp-route-searchTerm="@productSearchTerm"
+                               asp-route-page="@i"
+                               asp-route-pageSize="@productPageSize"
+                               style="padding:6px 12px; background:#fff; border:1px solid #d1d5db; border-radius:4px; color:#374151; text-decoration:none;">@i</a>
+                        }
+                    }
+                    @if (to < productTotalPages)
+                    {
+                        if (to < productTotalPages - 1) { <span style="padding:0 4px; color:#9ca3af;">…</span> }
+                        <a asp-action="Index"
+                           asp-route-section="products"
+                           asp-route-searchTerm="@productSearchTerm"
+                           asp-route-page="@productTotalPages"
+                           asp-route-pageSize="@productPageSize"
+                           style="padding:6px 10px; color:#374151; text-decoration:none;">@productTotalPages</a>
+                    }
+
+                    @if (productPage < productTotalPages)
+                    {
+                        <a asp-action="Index"
+                           asp-route-section="products"
+                           asp-route-searchTerm="@productSearchTerm"
+                           asp-route-page="@(productPage + 1)"
+                           asp-route-pageSize="@productPageSize"
+                           style="padding:6px 12px; background:#fff; border:1px solid #d1d5db; border-radius:4px; color:#374151; text-decoration:none;">
+                           Next ›
+                        </a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 
     <!-- CATEGORIES SECTION -->

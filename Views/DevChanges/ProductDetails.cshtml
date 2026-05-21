@@ -109,9 +109,16 @@
 
                         @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
                         {
-                            <div style="margin-bottom: 10px;">
+                            <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:10px;">
                                 <img src="@Model.ImageUrl" alt="@Model.Name"
                                      style="max-width: 180px; max-height: 180px; border:1px solid #e2e8f0; border-radius:6px; padding:4px; background:#fff; object-fit:contain;" />
+                                @* Standalone form so the click doesn't submit the
+                                   surrounding UpdateProduct form. *@
+                                <button type="button"
+                                        onclick="if (confirm('Remove this image?')) { document.getElementById('removeImageForm-@Model.Id').submit(); }"
+                                        class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Remove image
+                                </button>
                             </div>
                         }
 
@@ -155,6 +162,17 @@
                     </a>
                 </div>
             </form>
+
+            @* Standalone form for the "Remove image" button. Sits outside
+               the UpdateProduct form so clicking it doesn't also save the
+               (possibly half-edited) main form. *@
+            @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+            {
+                <form id="removeImageForm-@Model.Id" asp-action="RemoveProductImage" method="post" style="display:none;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                </form>
+            }
         </div>
 
         <!-- Product Preview Card -->

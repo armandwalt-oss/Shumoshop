@@ -789,6 +789,9 @@ namespace WebApplication1.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("SKU")
+                        .IsUnique();
+
                     b.HasIndex("SubCategoryId");
 
                     b.ToTable("Products");
