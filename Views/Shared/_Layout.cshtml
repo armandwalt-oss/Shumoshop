@@ -1,8 +1,46 @@
 @using WebApplication1.Models
+@using WebApplication1.Services
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ICategoryService CategoryService
+@inject ICountryService CountryService
+@inject IFeatureFlagService Flags
+@inject IConfiguration AppConfig
+
+@{
+    // Resolved by ActiveCountryMiddleware on every request.
+    var activeCountry = Context.Items[CountryKeys.HttpContextItemKey] as Country;
+    var allCountries  = await CountryService.GetActiveCountriesAsync();
+    var currentUrl    = Context.Request.Path + Context.Request.QueryString;
+
+    // International features stay hidden until Dev flips the flag on
+    // (DevChanges → Feature Flags). Default is SA-only.
+    var showCountrySwitcher = await Flags.IsEnabledAsync(WebApplication1.Models.FeatureFlags.CountrySwitcher);
+
+    // Analytics — three-way gate. ALL of the following must be true before
+    // any non-essential cookie tag fires:
+    //   (1) The visitor accepted analytics cookies in the consent banner.
+    //   (2) Dev has enabled the feature flag (so we can stop emission in an emergency).
+    //   (3) The measurement ID is configured (so dev environments don't pollute prod analytics).
+    var ga4Id        = AppConfig["Analytics:Ga4MeasurementId"];
+    var clarityId    = AppConfig["Analytics:ClarityProjectId"];
+
+    // Cookie consent — written by the consent banner JS below. Possible values:
+    //   "all"        — accept essential + analytics
+    //   "essential"  — accept essential only (default if no choice made)
+    //   missing      — banner will appear; treat as essential-only until accepted
+    var consentRaw = Context.Request.Cookies["shumoshop_cookie_consent"];
+    var analyticsConsent = string.Equals(consentRaw, "all", StringComparison.OrdinalIgnoreCase);
+    var consentChosen    = !string.IsNullOrEmpty(consentRaw);
+
+    var emitGa4      = analyticsConsent
+                       && !string.IsNullOrWhiteSpace(ga4Id)
+                       && await Flags.IsEnabledAsync(WebApplication1.Models.FeatureFlags.AnalyticsGa4);
+    var emitClarity  = analyticsConsent
+                       && !string.IsNullOrWhiteSpace(clarityId)
+                       && await Flags.IsEnabledAsync(WebApplication1.Models.FeatureFlags.AnalyticsClarity);
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +58,30 @@
           crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     @RenderSection("Styles", required: false)
+
+    @* ─── Analytics tags (off by default — both flag + ID required) ──── *@
+    @if (emitGa4)
+    {
+        <!-- Google Analytics 4 -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@ga4Id"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '@ga4Id');
+        </script>
+    }
+    @if (emitClarity)
+    {
+        <!-- Microsoft Clarity -->
+        <script type="text/javascript">
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "@clarityId");
+        </script>
+    }
 </head>
 <body>
 
@@ -42,7 +104,43 @@
                     </button>
                 </nav>
 
-                <div class="topbar__right">
+                <div class="topbar__right" style="display:flex; align-items:center; gap:1rem;">
+                    @* Country switcher — bound to the active country resolved by
+                       ActiveCountryMiddleware. Persists choice in a cookie.
+                       Hidden by default; Dev flips the international.country_switcher
+                       flag to expose it (DevChanges → Feature Flags). *@
+                    @if (showCountrySwitcher && activeCountry != null && allCountries.Any())
+                    {
+                        <div class="dropdown country-switcher">
+                            <button class="topbar-btn dropdown-toggle" type="button"
+                                    id="countrySwitcher"
+                                    data-bs-toggle="dropdown" aria-expanded="false"
+                                    style="background:transparent; color:#fff; border:none; cursor:pointer; font: inherit; line-height: 1.2;">
+                                <span style="font-size:1.1rem;">@activeCountry.FlagEmoji</span>
+                                <span>@activeCountry.Code · @activeCountry.CurrencyCode</span>
+                                <i class="fa-solid fa-chevron-down" style="font-size:.65rem; margin-left:.25rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="countrySwitcher" style="min-width:220px;">
+                                <li><h6 class="dropdown-header">Ship to / Pay in</h6></li>
+                                @foreach (var c in allCountries)
+                                {
+                                    <li>
+                                        <form asp-controller="Country" asp-action="Set" method="post" class="m-0 p-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="code" value="@c.Code" />
+                                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                            <button type="submit" class="dropdown-item @(c.Code == activeCountry.Code ? "active" : "")">
+                                                <span style="margin-right:.5rem;">@c.FlagEmoji</span>
+                                                @c.Name
+                                                <span style="color:#6b7280; margin-left:.35rem;">— @c.CurrencyCode</span>
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
                     <address class="topbar-address">
                         138 Botha Avenue Lyttleton, Centurion, 0014
                     </address>
@@ -205,7 +303,11 @@
                    }
 
                    function PrivacyPage() {
-                       window.location.href = '@Url.Action("Index", "Privacy")';
+                       window.location.href = '@Url.Action("Privacy", "Home")';
+                   }
+
+                   function CookiePolicyPage() {
+                       window.location.href = '@Url.Action("CookiePolicy", "Home")';
                    }
             </script>
     </header>
@@ -241,6 +343,7 @@
                     <li><button class="footer-link-btn" type="button" onclick="AboutPage()">About Us</button></li>
                     <li><button class="footer-link-btn" type="button" onclick="ContactUs()">Contact Us</button></li>
                     <li><button class="footer-link-btn" type="button" onclick="PrivacyPage()">Privacy Policy</button></li>
+                    <li><button class="footer-link-btn" type="button" onclick="CookiePolicyPage()">Cookie Policy</button></li>
                 </ul>
             </div>
 
@@ -302,5 +405,82 @@
 
     @await RenderSectionAsync("Scripts", required: false)
     <div id="globalOverlay" class="global-overlay" aria-hidden="true"></div>
+
+    @* ─── Cookie consent banner ────────────────────────────────────────
+       Shown only on first visit (when shumoshop_cookie_consent is absent).
+       Choice writes the cookie via JS and reloads so the new value is
+       picked up by Razor for the analytics-gating decision. *@
+    @if (!consentChosen)
+    {
+        <style>
+            .cookie-banner {
+                position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+                background: #1e293b; color: #f1f5f9;
+                padding: 18px 24px;
+                box-shadow: 0 -4px 24px rgba(0,0,0,.25);
+                display: flex; flex-wrap: wrap; gap: 16px;
+                align-items: center; justify-content: space-between;
+            }
+            .cookie-banner-text {
+                flex: 1; min-width: 280px;
+                font-size: 14px; line-height: 1.5;
+            }
+            .cookie-banner-text strong { color: #fff; }
+            .cookie-banner-text a {
+                color: #93c5fd; text-decoration: underline;
+            }
+            .cookie-banner-actions {
+                display: flex; flex-wrap: wrap; gap: 8px;
+            }
+            .cookie-btn {
+                border: none; padding: 9px 16px; border-radius: 6px;
+                cursor: pointer; font-size: 14px; font-weight: 600;
+            }
+            .cookie-btn-accept { background: #22c55e; color: #fff; }
+            .cookie-btn-accept:hover { background: #16a34a; }
+            .cookie-btn-essential { background: #475569; color: #fff; }
+            .cookie-btn-essential:hover { background: #334155; }
+        </style>
+
+        <div class="cookie-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+            <div class="cookie-banner-text">
+                <strong>We use cookies.</strong>
+                Essential cookies keep the cart, login, and country switcher working.
+                Optional analytics cookies (Google Analytics, Microsoft Clarity)
+                help us improve the site — they only fire if you accept.
+                Read the <a href="@Url.Action("CookiePolicy", "Home")">Cookie Policy</a>
+                or our <a href="@Url.Action("Privacy", "Home")">Privacy Policy</a>.
+            </div>
+            <div class="cookie-banner-actions">
+                <button type="button" class="cookie-btn cookie-btn-essential"
+                        onclick="setCookieConsent('essential')">
+                    Essential only
+                </button>
+                <button type="button" class="cookie-btn cookie-btn-accept"
+                        onclick="setCookieConsent('all')">
+                    Accept all
+                </button>
+            </div>
+        </div>
+
+        <script>
+            function setCookieConsent(choice) {
+                // 1-year cookie. SameSite=Lax matches the rest of our auth cookies.
+                var expires = new Date();
+                expires.setFullYear(expires.getFullYear() + 1);
+                document.cookie =
+                    'shumoshop_cookie_consent=' + encodeURIComponent(choice) +
+                    '; expires=' + expires.toUTCString() +
+                    '; path=/; SameSite=Lax' +
+                    (location.protocol === 'https:' ? '; Secure' : '');
+
+                // Hide the banner immediately, then reload so the analytics
+                // tags can be emitted on this page if the user accepted "all".
+                var b = document.getElementById('cookieBanner');
+                if (b) b.style.display = 'none';
+                if (choice === 'all') location.reload();
+            }
+        </script>
+    }
 </body>
 </html>

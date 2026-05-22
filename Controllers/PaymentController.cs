@@ -17,6 +17,7 @@ namespace WebApplication1.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IFeatureFlagService _featureFlags;
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(
@@ -24,12 +25,14 @@ namespace WebApplication1.Controllers
             IPaymentService paymentService,
             IEmailService emailService,
             IConfiguration configuration,
+            IFeatureFlagService featureFlags,
             ILogger<PaymentController> logger)
         {
             _context = context;
             _paymentService = paymentService;
             _emailService = emailService;
             _configuration = configuration;
+            _featureFlags = featureFlags;
             _logger = logger;
         }
 
@@ -67,6 +70,69 @@ namespace WebApplication1.Controllers
             {
                 _logger.LogWarning("Order already paid: {OrderNumber}", order.OrderNumber);
                 return RedirectToAction("OrderConfirmation", "Order", new { orderNumber = order.OrderNumber });
+            }
+
+            // ────────────────────────────────────────────────────────────────
+            // DEMO BYPASS — when the feature flag demo.bypass_payments is on,
+            // we skip PayFast entirely, mark the order Paid immediately, run
+            // the same post-payment side-effects the ITN handler runs, and
+            // jump straight to the Success view. PayFast code path is left
+            // 100% intact below for when the flag is off.
+            // ────────────────────────────────────────────────────────────────
+            if (await _featureFlags.IsEnabledAsync(FeatureFlags.DemoBypassPayments))
+            {
+                _logger.LogWarning("⚠️ Demo bypass enabled — marking order {OrderNumber} paid without PayFast.",
+                    order.OrderNumber);
+
+                order.Status = "Processing";
+                order.PaymentStatus = "Paid";
+                order.PaymentMethod = "Demo Bypass";
+                order.TransactionId = "DEMO-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant();
+                order.Notes = $"Payment BYPASSED for demo at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. " +
+                              $"This order was never charged. Flip demo.bypass_payments off to use the real PayFast flow.";
+                await _context.SaveChangesAsync();
+
+                // Customer confirmation email (best-effort).
+                try
+                {
+                    var user = order.User;
+                    if (user != null)
+                    {
+                        await _emailService.SendOrderConfirmationAsync(order, user);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Demo bypass: failed to send order confirmation for {OrderNumber}", order.OrderNumber);
+                }
+
+                // Admin "new paid order" notification (best-effort).
+                try
+                {
+                    var adminEmail = _configuration["Email:AdminEmail"];
+                    if (!string.IsNullOrWhiteSpace(adminEmail))
+                    {
+                        var subject = $"[DEMO] New paid order — {order.OrderNumber} (R {order.TotalAmount:N2})";
+                        var body = $"<html><body style='font-family:Arial,sans-serif;'>" +
+                                   $"<h2>New paid order (demo bypass)</h2>" +
+                                   $"<p>This order was placed with PayFast bypassed.</p>" +
+                                   $"<p><strong>Order:</strong> {order.OrderNumber}<br/>" +
+                                   $"<strong>Total:</strong> R {order.TotalAmount:N2}<br/>" +
+                                   $"<strong>Customer:</strong> {System.Net.WebUtility.HtmlEncode(order.CustomerName)} {System.Net.WebUtility.HtmlEncode(order.CustomerSurname)} &lt;{System.Net.WebUtility.HtmlEncode(order.Email)}&gt;</p>" +
+                                   $"<p><a href='/Admin/OrderDetails/{order.Id}'>Open in admin →</a></p>" +
+                                   $"</body></html>";
+                        await _emailService.SendEmailAsync(adminEmail, subject, body);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Demo bypass: failed to send admin notification for {OrderNumber}", order.OrderNumber);
+                }
+
+                // Land on the same Success view the real flow shows. Pass the
+                // order number as m_payment_id so the Return action picks it
+                // up unchanged.
+                return RedirectToAction("Return", new { m_payment_id = order.OrderNumber });
             }
 
             try

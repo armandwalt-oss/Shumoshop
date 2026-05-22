@@ -1,0 +1,225 @@
+@{
+    ViewData["Title"] = "Cookie Policy";
+}
+
+<style>
+    .policy-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        background: #ffffff;
+        color: #1f2937;
+        line-height: 1.7;
+    }
+    .policy-header { text-align: center; margin-bottom: 50px; padding-bottom: 30px; border-bottom: 3px solid #3b82f6; }
+    .policy-header h1 { font-size: 2.5rem; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
+    .policy-header .last-updated { color: #64748b; font-size: 0.95rem; }
+    .policy-intro {
+        background: #f8fafc; padding: 28px; border-radius: 12px;
+        border-left: 4px solid #3b82f6; margin-bottom: 36px;
+    }
+    .policy-intro p { margin: 0; color: #475569; font-size: 1.05rem; }
+    .policy-section { margin-bottom: 36px; }
+    .policy-section h2 {
+        font-size: 1.5rem; font-weight: 700; color: #0f172a;
+        margin: 0 0 14px 0; padding-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .policy-section p, .policy-section li { color: #334155; }
+
+    .cookie-table {
+        width: 100%; border-collapse: collapse; margin: 16px 0;
+        font-size: 0.95rem;
+    }
+    .cookie-table th, .cookie-table td {
+        text-align: left; padding: 12px 14px;
+        border-bottom: 1px solid #e5e7eb; vertical-align: top;
+    }
+    .cookie-table th { background: #f8fafc; color: #1e293b; font-weight: 600; }
+    .cookie-table tr:nth-child(even) td { background: #fafbfc; }
+    .pill {
+        display: inline-block; padding: 3px 10px; border-radius: 999px;
+        font-size: 0.8rem; font-weight: 600;
+    }
+    .pill.essential { background: #dcfce7; color: #166534; }
+    .pill.optional  { background: #fef3c7; color: #92400e; }
+    .info-box {
+        background: #eff6ff; border-left: 4px solid #3b82f6;
+        padding: 14px 18px; border-radius: 8px; margin: 16px 0;
+        color: #1e3a8a; font-size: 0.95rem;
+    }
+</style>
+
+<div class="policy-container">
+    <div class="policy-header">
+        <h1>Cookie Policy</h1>
+        <div class="last-updated">Last updated: @DateTime.Now.ToString("d MMMM yyyy")</div>
+    </div>
+
+    <div class="policy-intro">
+        <p>
+            This page explains every cookie ShumoShop sets on your device,
+            why we set it, how long it lasts, and how you can opt out. It
+            complements our <a asp-action="Privacy">Privacy Policy</a>.
+            Under POPIA and the GDPR, we only set non-essential cookies
+            after you have given consent — which you can do, change, or
+            withdraw from the consent banner at the bottom of any page.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>What is a cookie?</h2>
+        <p>
+            A cookie is a small text file your browser stores on your device
+            when you visit a website. Cookies let sites remember things between
+            page loads — your shopping cart, whether you're signed in, your
+            language or country preference. Some cookies are essential to the
+            site working; others (like analytics) are optional.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>Cookies we set</h2>
+
+        <h3 style="font-size:1.1rem; font-weight:600; margin: 16px 0 8px;">Essential cookies — always on</h3>
+        <p>
+            These are required to operate the site. They cannot be switched
+            off because without them the site simply doesn't work.
+        </p>
+        <table class="cookie-table">
+            <thead>
+                <tr>
+                    <th>Cookie</th>
+                    <th>Purpose</th>
+                    <th>Duration</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>.AspNetCore.Session</code></td>
+                    <td>Keeps your shopping cart together across pages while you browse.</td>
+                    <td>Session, plus 7 days idle</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+                <tr>
+                    <td><code>.AspNetCore.Identity.Application</code></td>
+                    <td>Remembers that you're signed in to your account.</td>
+                    <td>Session, or 7 days if "remember me"</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+                <tr>
+                    <td><code>.AspNetCore.Antiforgery.*</code></td>
+                    <td>CSRF protection — stops a malicious site from submitting forms on your behalf.</td>
+                    <td>Session</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+                <tr>
+                    <td><code>CartSessionId</code></td>
+                    <td>Links your guest cart to your account once you sign in.</td>
+                    <td>30 days</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+                <tr>
+                    <td><code>shumoshop_country</code></td>
+                    <td>Remembers which country / currency you've chosen via the header switcher.</td>
+                    <td>1 year</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+                <tr>
+                    <td><code>shumoshop_cookie_consent</code></td>
+                    <td>Records your cookie-consent choice so we don't pester you on every page.</td>
+                    <td>1 year</td>
+                    <td><span class="pill essential">Essential</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="font-size:1.1rem; font-weight:600; margin: 24px 0 8px;">Optional cookies — only set with your consent</h3>
+        <p>
+            These help us understand which pages are popular and where customers
+            get stuck. They are off by default. You can enable or disable them
+            from the consent banner at any time.
+        </p>
+        <table class="cookie-table">
+            <thead>
+                <tr>
+                    <th>Cookie</th>
+                    <th>Purpose</th>
+                    <th>Duration</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>_ga</code>, <code>_ga_*</code></td>
+                    <td>
+                        Google Analytics 4 — gives us aggregated visitor numbers,
+                        which pages get viewed, and basic conversion stats. Set
+                        and read only by Google. We never see your name, email,
+                        or payment information through GA4.
+                    </td>
+                    <td>2 years</td>
+                    <td><span class="pill optional">Analytics</span></td>
+                </tr>
+                <tr>
+                    <td><code>_clck</code>, <code>_clsk</code></td>
+                    <td>
+                        Microsoft Clarity — heatmaps and session recordings so
+                        we can see where customers struggle on the site. Set
+                        and read only by Microsoft. Form field contents and
+                        any text inside elements marked sensitive are
+                        automatically masked before they reach Clarity.
+                    </td>
+                    <td>1 year</td>
+                    <td><span class="pill optional">Analytics</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="policy-section">
+        <h2>Managing your consent</h2>
+        <p>You have three places to manage cookies:</p>
+        <ul>
+            <li><strong>The consent banner</strong> — appears at the bottom of the page on your first visit and remembers your choice. To re-open it, clear the <code>shumoshop_cookie_consent</code> cookie in your browser settings and refresh.</li>
+            <li><strong>Browser settings</strong> — every modern browser lets you block or delete cookies. Note that blocking all cookies, including the essential ones, will break sign-in and the shopping cart.</li>
+            <li><strong>Account → Settings</strong> — toggle notification + marketing email preferences (separate from cookies).</li>
+        </ul>
+        <div class="info-box">
+            <strong>Withdrawing consent later</strong> means we stop setting the
+            optional cookies from then on. Any cookies already set by Google or
+            Microsoft will expire according to their normal lifetimes; you can
+            speed this up by clearing them in your browser.
+        </div>
+    </div>
+
+    <div class="policy-section">
+        <h2>Third-party cookies</h2>
+        <p>
+            The only cookies set by third parties under your consent are the
+            Google Analytics and Microsoft Clarity cookies above. Both
+            providers operate under their own privacy policies:
+        </p>
+        <ul>
+            <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
+            <li><a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noopener">Microsoft Privacy Statement</a></li>
+        </ul>
+        <p>
+            Payment processors (PayFast, and in future Stripe and PayPal) may
+            set their own cookies while you complete payment on their pages.
+            Those interactions happen on the processor's domain, not ours,
+            and are governed by their respective policies.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>Questions</h2>
+        <p>
+            For anything cookie-related, email
+            <a href="mailto:privacy@shumoshop.co.za">privacy@shumoshop.co.za</a>.
+            See our <a asp-action="Privacy">Privacy Policy</a> for the wider
+            picture of how we handle personal information.
+        </p>
+    </div>
+</div>

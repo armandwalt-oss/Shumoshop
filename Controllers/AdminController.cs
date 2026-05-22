@@ -86,6 +86,24 @@ namespace WebApplication1.Controllers
             ViewBag.LowStockCount = lowStockCount;
             ViewBag.LowStockThreshold = lowStockThreshold;
 
+            // Top viewed products this week (for the dashboard widget).
+            // Safe-on-missing-table: if the migration hasn't run yet, just show
+            // an empty list rather than crashing the dashboard.
+            var topProducts = new List<TopProductRow>();
+            int totalViewsWeek = 0;
+            try
+            {
+                var analytics = HttpContext.RequestServices.GetRequiredService<IAnalyticsService>();
+                topProducts = await analytics.GetTopProductsAsync(daysBack: 7, topN: 5);
+                totalViewsWeek = await analytics.GetTotalViewsAsync(daysBack: 7);
+            }
+            catch
+            {
+                // ProductViews not migrated yet — show empty widget.
+            }
+            ViewBag.TopProducts = topProducts;
+            ViewBag.TotalViewsWeek = totalViewsWeek;
+
             // Recent orders - with null safety
             var recentOrders = new List<Order>();
             try
@@ -560,6 +578,29 @@ namespace WebApplication1.Controllers
             }
 
             return RedirectToAction("UserDetails", new { id = userId });
+        }
+
+        // ============================================
+        // TOP VIEWED PRODUCTS — drives the dashboard widget AND a standalone
+        // /Admin/TopProducts page. Pulled from the ProductView log.
+        // ============================================
+        [HttpGet]
+        public async Task<IActionResult> TopProducts(int daysBack = 7, int topN = 50)
+        {
+            if (daysBack < 1) daysBack = 1;
+            if (daysBack > 365) daysBack = 365;
+            if (topN < 1 || topN > 200) topN = 50;
+
+            // Resolve via service registered in Program.cs.
+            var analytics = HttpContext.RequestServices.GetRequiredService<IAnalyticsService>();
+
+            var top = await analytics.GetTopProductsAsync(daysBack, topN);
+            var total = await analytics.GetTotalViewsAsync(daysBack);
+
+            ViewBag.DaysBack = daysBack;
+            ViewBag.TopN = topN;
+            ViewBag.TotalViews = total;
+            return View(top);
         }
 
         // ============================================

@@ -1,0 +1,121 @@
+@{
+    ViewData["Title"] = "Country Prices";
+    var countries = ViewBag.Countries as List<WebApplication1.Models.Country> ?? new();
+    var priceCounts = ViewBag.PriceCounts as Dictionary<string, int> ?? new();
+    int totalProducts = ViewBag.TotalProducts ?? 0;
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fa-solid fa-globe"></i>
+                Country Prices
+            </h1>
+            <p class="text-muted mb-0">
+                Upload a CSV per country to set product prices in that market's
+                currency. Live behind the
+                <code>international.geo_pricing</code> feature flag.
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dev
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <strong>Pricing coverage by market</strong>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Country</th>
+                        <th>Currency</th>
+                        <th class="text-end">Prices set</th>
+                        <th class="text-end">Coverage</th>
+                        <th class="text-end" style="width: 360px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var country in countries)
+                    {
+                        var set = priceCounts.TryGetValue(country.Code, out var c) ? c : 0;
+                        var coverage = totalProducts == 0 ? 0 : (int)Math.Round(100.0 * set / totalProducts);
+                        var isZa = country.Code == "ZA";
+
+                        <tr>
+                            <td>
+                                @country.FlagEmoji <strong>@country.Name</strong>
+                                <span class="text-muted">(@country.Code)</span>
+                            </td>
+                            <td>@country.CurrencyCode @country.CurrencySymbol</td>
+                            <td class="text-end">
+                                @if (isZa)
+                                {
+                                    <span class="text-muted">— base price —</span>
+                                }
+                                else
+                                {
+                                    <text>@set / @totalProducts</text>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (!isZa)
+                                {
+                                    <div class="progress" style="height:8px; min-width:100px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             style="width:@(coverage)%;"
+                                             aria-valuenow="@coverage" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="text-muted">@coverage%</small>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (isZa)
+                                {
+                                    <span class="badge bg-secondary">N/A — ZAR is the base currency</span>
+                                }
+                                else
+                                {
+                                    <form asp-action="CountryPricesPreview" method="post" enctype="multipart/form-data" class="d-inline-flex align-items-center gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="countryCode" value="@country.Code" />
+                                        <input type="file" name="csvFile" accept=".csv,text/csv" required class="form-control form-control-sm" style="max-width: 180px;" />
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fa-solid fa-upload"></i> Upload
+                                        </button>
+                                    </form>
+                                    <a asp-action="CountryPricesTemplate" asp-route-countryCode="@country.Code"
+                                       class="btn btn-sm btn-outline-secondary ms-1" title="Download template CSV">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="alert alert-info small mb-0">
+        <strong>How CSVs work:</strong> Two columns —
+        <code>SKU,Price</code> — header row required. Each line sets the price
+        for that SKU in this country's currency. Uploading a new file
+        <em>updates</em> existing prices and inserts any new ones; nothing is
+        ever deleted by an import. Unknown SKUs are flagged and skipped.
+    </div>
+</div>

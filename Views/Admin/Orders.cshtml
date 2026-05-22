@@ -94,9 +94,56 @@
                                 </td>
 
                                 <td>
-                                    <a href="/Admin/OrderDetails/@order.Id" class="btn-view">
-                                        <i class="fa-solid fa-eye"></i> View
-                                    </a>
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                                        <a href="/Admin/OrderDetails/@order.Id" class="btn-view">
+                                            <i class="fa-solid fa-eye"></i> View
+                                        </a>
+
+                                        @* Inline "next step" button. Pending → Processing
+                                           and Shipped → Delivered advance directly (no
+                                           extra data needed). Processing → Shipped goes
+                                           via View so the admin can enter tracking info. *@
+                                        @{
+                                            string? nextStatus = order.Status switch
+                                            {
+                                                "Pending" => "Processing",
+                                                "Shipped" => "Delivered",
+                                                _ => null
+                                            };
+                                        }
+                                        @if (order.Status == "Processing")
+                                        {
+                                            <a href="/Admin/OrderDetails/@order.Id"
+                                               class="btn-view"
+                                               style="background:#0d6efd; color:#fff; border-color:#0d6efd;"
+                                               title="Open to enter tracking + mark as shipped">
+                                                <i class="fa-solid fa-truck-fast"></i> Ship
+                                            </a>
+                                        }
+                                        else if (nextStatus is not null)
+                                        {
+                                            <form asp-action="UpdateOrderStatus" method="post" style="display:inline; margin:0;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <input type="hidden" name="status" value="@nextStatus" />
+                                                <button type="submit" class="btn-view"
+                                                        style="background:#16a34a; color:#fff; border-color:#16a34a;"
+                                                        onclick="return confirm('Mark order #@order.OrderNumber as @nextStatus?');"
+                                                        title="One-click status advance">
+                                                    @if (nextStatus == "Processing")
+                                                    {
+                                                        <i class="fa-solid fa-play"></i>
+                                                        <span>Start</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fa-solid fa-check"></i>
+                                                        <span>Mark Delivered</span>
+                                                    }
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }

@@ -58,8 +58,8 @@ namespace WebApplication1.Middleware
                 "img-src 'self' data: https:; " +
                 "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
                 "font-src 'self' https://cdnjs.cloudflare.com data:; " +
-                "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
-                "connect-src 'self' https://api.portal.thecourierguy.co.za https://api.shiplogic.com https://sandbox.payfast.co.za https://www.payfast.co.za; " +
+                "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://*.clarity.ms; " +
+                "connect-src 'self' https://api.portal.thecourierguy.co.za https://api.shiplogic.com https://sandbox.payfast.co.za https://www.payfast.co.za https://www.google-analytics.com https://*.google-analytics.com https://www.clarity.ms https://*.clarity.ms; " +
                 "frame-ancestors 'self'; " +
                 "base-uri 'self'; " +
                 "form-action 'self' https://sandbox.payfast.co.za https://www.payfast.co.za;";

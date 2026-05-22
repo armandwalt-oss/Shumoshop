@@ -50,6 +50,43 @@ builder.Services.AddHttpClient<ICourierGuyService, CourierGuyService>();
 // Bulk product CSV import used by DevChangesController.
 builder.Services.AddScoped<ProductCsvImportService>();
 
+// Geo / market resolution. Powers the country switcher in the header
+// and the upcoming geo-pricing + international shipping work.
+builder.Services.AddScoped<ICountryService, CountryService>();
+
+// Feature flags — Dev role toggles experimental features at runtime
+// without redeploying. Used to hide international features until ready.
+builder.Services.AddScoped<IFeatureFlagService, FeatureFlagService>();
+
+// Geo-pricing — per-country price overrides + the resolver used by views
+// to decide which price + currency to render.
+builder.Services.AddScoped<IPriceResolver, PriceResolver>();
+builder.Services.AddScoped<CountryPriceImportService>();
+
+// Product-view analytics. Logs one row per Shop/Product detail hit; powers
+// the "Top Viewed Products" admin widget. Best-effort writes.
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
+// Shipping providers — Courier Guy is the only one with a real live
+// integration today. DHL Express / FedEx / Aramex are stubs that activate
+// the moment their credentials drop into User Secrets / appsettings. All
+// four are registered as IShippingProvider so the registry can enumerate
+// them and route by destination country.
+builder.Services.AddScoped<WebApplication1.Services.Shipping.IShippingProvider, WebApplication1.Services.Shipping.CourierGuyShippingProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Shipping.IShippingProvider, WebApplication1.Services.Shipping.DhlExpressShippingProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Shipping.IShippingProvider, WebApplication1.Services.Shipping.FedexShippingProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Shipping.IShippingProvider, WebApplication1.Services.Shipping.AramexShippingProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Shipping.IShippingProviderRegistry, WebApplication1.Services.Shipping.ShippingProviderRegistry>();
+
+// Payment providers — PayFast is live for ZAR. Stripe (multi-currency) and
+// PayPal are stubs that activate when their credentials drop in. Each
+// implements IPaymentProvider; the registry picks the right ones at
+// checkout based on the active currency.
+builder.Services.AddScoped<WebApplication1.Services.Payments.IPaymentProvider, WebApplication1.Services.Payments.PayFastPaymentProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Payments.IPaymentProvider, WebApplication1.Services.Payments.StripePaymentProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Payments.IPaymentProvider, WebApplication1.Services.Payments.PayPalPaymentProvider>();
+builder.Services.AddScoped<WebApplication1.Services.Payments.IPaymentProviderRegistry, WebApplication1.Services.Payments.PaymentProviderRegistry>();
+
 // Antiforgery — allow the token to be sent via a header so JS fetch() calls
 // can POST JSON without embedding a hidden <input> in a form.
 builder.Services.AddAntiforgery(options =>
@@ -119,6 +156,10 @@ app.UseAuthorization();
 // ADD SESSION MIDDLEWARE
 // ============================================
 app.UseSession();
+
+// Resolves the visitor's active country (from cookie today; IP-based in a
+// future slice) and publishes it on HttpContext.Items for views/controllers.
+app.UseActiveCountry();
 
 app.MapControllerRoute(
     name: "default",

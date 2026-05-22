@@ -10,6 +10,9 @@
     var lowStockThreshold = (int)(ViewBag.LowStockThreshold ?? 10);
     var recentOrders = ViewBag.RecentOrders as List<WebApplication1.Models.Order>;
     var recentReturns = ViewBag.RecentReturns as List<WebApplication1.Models.ReturnRequest>;
+    var topProducts = ViewBag.TopProducts as List<WebApplication1.Services.TopProductRow>
+                    ?? new List<WebApplication1.Services.TopProductRow>();
+    int totalViewsWeek = ViewBag.TotalViewsWeek ?? 0;
 }
 
 <link href="~/css/admin.css" rel="stylesheet" />
@@ -109,7 +112,47 @@
             <i class="fa-solid fa-triangle-exclamation"></i>
             <span>Low Stock@(lowStockCount > 0 ? $" ({lowStockCount})" : "")</span>
         </a>
+        <a href="/Admin/TopProducts" class="action-btn">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Top Products</span>
+        </a>
     </div>
+
+    @if (topProducts.Any())
+    {
+        <div class="dashboard-section" style="margin-top: 1rem;">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-fire"></i> Top Viewed Products (last 7 days)</h2>
+                <a href="/Admin/TopProducts" class="view-all-link">View All</a>
+            </div>
+            <p class="text-muted" style="font-size:.9rem; margin: 0 0 .5rem;">
+                @totalViewsWeek.ToString("N0") product view(s) this week.
+            </p>
+            <div class="item-list">
+                @{ int rank = 0; var max = topProducts.First().ViewCount; }
+                @foreach (var p in topProducts)
+                {
+                    rank++;
+                    var pct = max == 0 ? 0 : (int)Math.Round(100.0 * p.ViewCount / max);
+                    <div class="list-item" style="display:flex; align-items:center; gap:1rem;">
+                        <div style="min-width:30px; font-weight:700; color:#6366f1;">#@rank</div>
+                        <div class="item-info" style="flex:1;">
+                            <h4 style="margin:0; font-size:.95rem;">@p.Name</h4>
+                            <p style="margin:0; font-size:.8rem; color:#6b7280;"><code>@p.SKU</code></p>
+                        </div>
+                        <div style="min-width:180px;">
+                            <div style="display:flex; align-items:center; gap:.5rem;">
+                                <div style="flex:1; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
+                                    <div style="width:@(pct)%; height:100%; background:#6366f1;"></div>
+                                </div>
+                                <span style="min-width:36px; text-align:right; font-weight:600;">@p.ViewCount</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     <!-- Recent Activity -->
     <div class="section-grid">

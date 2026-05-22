@@ -76,7 +76,7 @@
                             <div class="item-quantity">
                                 <label>Quantity</label>
                                 <div class="quantity-controls">
-                                    <button type="button" class="qty-btn" onclick="updateQuantity(@item.Id, @item.Quantity - 1)">
+                                    <button type="button" class="qty-btn qty-minus" data-item-id="@item.Id">
                                         <i class="fa-solid fa-minus"></i>
                                     </button>
                                     <input type="number"
@@ -85,8 +85,9 @@
                                            min="1"
                                            max="@item.Product.StockQuantity"
                                            data-item-id="@item.Id"
+                                           data-stock="@item.Product.StockQuantity"
                                            onchange="updateQuantityInput(this, @item.Id)" />
-                                    <button type="button" class="qty-btn" onclick="updateQuantity(@item.Id, @item.Quantity + 1)">
+                                    <button type="button" class="qty-btn qty-plus" data-item-id="@item.Id">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
@@ -115,7 +116,7 @@
                     <h2>Order Summary</h2>
 
                     <div class="summary-row">
-                        <span>Subtotal (@Model.TotalItems items)</span>
+                        <span>Subtotal (<span class="summary-items-count">@Model.TotalItems</span> items)</span>
                         <span id="cart-subtotal">R @Model.SubTotal.ToString("N2")</span>
                     </div>
 
@@ -162,42 +163,85 @@
 
 @section Scripts {
     <script>
-        // Update quantity
+        // Track in-flight requests per cart item so rapid +/- clicks queue
+        // up instead of racing each other. Without this, three quick clicks
+        // can fire three async POSTs with the same "old" quantity baked in,
+        // and responses arriving out of order leave the input stuck.
+        const pending = {};   // itemId -> latest target quantity
+        const inflight = {};  // itemId -> true while a request is in progress
+
         function updateQuantity(itemId, newQuantity) {
-            if (newQuantity < 1) return;
+            const max = parseInt($(`input[data-item-id="${itemId}"]`).attr('data-stock'), 10) || 9999;
+            newQuantity = Math.max(1, Math.min(max, parseInt(newQuantity, 10) || 1));
+
+            // Always remember the LATEST target. If a request is already in
+            // flight we just update this and let the success handler decide
+            // whether to fire another one once it returns.
+            pending[itemId] = newQuantity;
+
+            // Optimistic UI update — the input always shows the user's
+            // intended value immediately, regardless of network latency.
+            $(`input[data-item-id="${itemId}"]`).val(newQuantity);
+
+            if (inflight[itemId]) return;
+            fireUpdate(itemId);
+        }
+
+        function fireUpdate(itemId) {
+            const target = pending[itemId];
+            if (target === undefined) return;
+
+            inflight[itemId] = true;
+            delete pending[itemId];
 
             $.ajax({
                 url: '/Cart/UpdateQuantity',
                 type: 'POST',
-                data: { cartItemId: itemId, quantity: newQuantity },
+                data: { cartItemId: itemId, quantity: target },
                 success: function (response) {
                     if (response.success) {
-                        // Update quantity input
-                        $(`input[data-item-id="${itemId}"]`).val(newQuantity);
-
-                        // Update item total
                         $(`[data-item-total="${itemId}"]`).text('R ' + response.itemTotal.toFixed(2));
-
-                        // Update cart total
                         $('#cart-subtotal').text('R ' + response.cartTotal.toFixed(2));
                         $('#cart-total').text('R ' + response.cartTotal.toFixed(2));
+                        $('.items-count').text(response.cartCount + ' item(s)');
+                        $('.summary-items-count').text(response.cartCount);
+                        $('.cart-count').text('(' + response.cartCount + ')');
                     } else {
                         alert(response.message);
                     }
                 },
                 error: function () {
                     alert('Error updating quantity');
+                },
+                complete: function () {
+                    inflight[itemId] = false;
+                    // The user may have clicked again while we were waiting —
+                    // if so, immediately fire another request for the newest value.
+                    if (pending[itemId] !== undefined) fireUpdate(itemId);
                 }
             });
         }
 
-        // Update quantity from input
+        // Update quantity from input (typed change)
         function updateQuantityInput(input, itemId) {
-            const newQuantity = parseInt(input.value);
-            if (newQuantity >= 1) {
-                updateQuantity(itemId, newQuantity);
-            }
+            const newQuantity = parseInt(input.value, 10);
+            if (newQuantity >= 1) updateQuantity(itemId, newQuantity);
         }
+
+        // Wire +/- buttons. Reading the live input value at click time
+        // means the handler is never stale, even after many adjustments.
+        $(document).on('click', '.qty-minus', function () {
+            const itemId = $(this).data('item-id');
+            const input = $(`input[data-item-id="${itemId}"]`);
+            const current = parseInt(input.val(), 10) || 1;
+            updateQuantity(itemId, current - 1);
+        });
+        $(document).on('click', '.qty-plus', function () {
+            const itemId = $(this).data('item-id');
+            const input = $(`input[data-item-id="${itemId}"]`);
+            const current = parseInt(input.val(), 10) || 1;
+            updateQuantity(itemId, current + 1);
+        });
 
         // Remove item
         function removeItem(itemId) {
@@ -226,6 +270,7 @@
 
                                 // Update items count
                                 $('.items-count').text(response.cartCount + ' item(s)');
+                                $('.summary-items-count').text(response.cartCount);
                             }
                         });
                     } else {

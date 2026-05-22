@@ -22,9 +22,19 @@
         <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
 
-    <div class="page-header">
-        <i class="fas fa-cogs"></i>
-        <h1>System Management</h1>
+    <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div>
+            <i class="fas fa-cogs"></i>
+            <h1 style="display:inline; margin:0;">System Management</h1>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <a asp-action="CountryPrices" class="btn-create" style="background:#0ea5e9;">
+                <i class="fas fa-globe"></i> Country Prices
+            </a>
+            <a asp-action="FeatureFlags" class="btn-create" style="background:#6366f1;">
+                <i class="fas fa-toggle-on"></i> Feature Flags
+            </a>
+        </div>
     </div>
 
     <p class="subtitle">Manage products, categories, and subcategories</p>

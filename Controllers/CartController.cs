@@ -132,15 +132,18 @@ namespace WebApplication1.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Calculate new totals
+            // Calculate new totals (include cartCount so the header badge
+            // and "Subtotal (N items)" label stay in sync with the change).
             var itemTotal = cartItem.TotalPrice;
             var cartTotal = await GetCartTotalAsync();
+            var cartCount = await GetCartItemCountAsync();
 
             return Json(new
             {
                 success = true,
                 itemTotal = itemTotal,
-                cartTotal = cartTotal
+                cartTotal = cartTotal,
+                cartCount = cartCount
             });
         }
 

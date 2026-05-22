@@ -28,6 +28,8 @@ namespace WebApplication1.Data
 
                 await SeedCatalogueAsync(context, env, logger);
                 await SeedStoresAsync(context, logger);
+                await SeedCountriesAsync(context, logger);
+                await SeedFeatureFlagsAsync(context, logger);
                 await SeedDemoUsersAsync(userManager, logger);
 
                 logger.LogInformation("✅ Database seeding complete.");
@@ -229,6 +231,69 @@ namespace WebApplication1.Data
             await context.Stores.AddRangeAsync(stores);
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded {Count} stores.", stores.Count);
+        }
+
+        // ------------------------------------------------------------------
+        // COUNTRIES (markets ShumoShop ships to / displays prices in)
+        // Idempotent — only adds countries that don't already exist.
+        // ------------------------------------------------------------------
+        private static async Task SeedCountriesAsync(ApplicationDbContext context, ILogger logger)
+        {
+            var defaults = new List<Country>
+            {
+                new() { Code = "ZA", Name = "South Africa",   CurrencyCode = "ZAR", CurrencySymbol = "R",   FlagEmoji = "🇿🇦", DisplayOrder = 1,  IsActive = true },
+                new() { Code = "US", Name = "United States",  CurrencyCode = "USD", CurrencySymbol = "$",   FlagEmoji = "🇺🇸", DisplayOrder = 10, IsActive = true },
+                new() { Code = "GB", Name = "United Kingdom", CurrencyCode = "GBP", CurrencySymbol = "£",   FlagEmoji = "🇬🇧", DisplayOrder = 11, IsActive = true },
+                new() { Code = "AU", Name = "Australia",      CurrencyCode = "AUD", CurrencySymbol = "A$",  FlagEmoji = "🇦🇺", DisplayOrder = 12, IsActive = true },
+                new() { Code = "DE", Name = "Germany",        CurrencyCode = "EUR", CurrencySymbol = "€",   FlagEmoji = "🇩🇪", DisplayOrder = 13, IsActive = true },
+                new() { Code = "FR", Name = "France",         CurrencyCode = "EUR", CurrencySymbol = "€",   FlagEmoji = "🇫🇷", DisplayOrder = 14, IsActive = true },
+                new() { Code = "NL", Name = "Netherlands",    CurrencyCode = "EUR", CurrencySymbol = "€",   FlagEmoji = "🇳🇱", DisplayOrder = 15, IsActive = true },
+                new() { Code = "CA", Name = "Canada",         CurrencyCode = "CAD", CurrencySymbol = "C$",  FlagEmoji = "🇨🇦", DisplayOrder = 16, IsActive = true },
+                new() { Code = "NZ", Name = "New Zealand",    CurrencyCode = "NZD", CurrencySymbol = "NZ$", FlagEmoji = "🇳🇿", DisplayOrder = 17, IsActive = true },
+                new() { Code = "AE", Name = "UAE",            CurrencyCode = "AED", CurrencySymbol = "د.إ", FlagEmoji = "🇦🇪", DisplayOrder = 18, IsActive = true },
+                new() { Code = "IN", Name = "India",          CurrencyCode = "INR", CurrencySymbol = "₹",   FlagEmoji = "🇮🇳", DisplayOrder = 19, IsActive = true },
+                new() { Code = "NG", Name = "Nigeria",        CurrencyCode = "NGN", CurrencySymbol = "₦",   FlagEmoji = "🇳🇬", DisplayOrder = 20, IsActive = true },
+            };
+
+            var existingCodes = (await context.Countries.Select(c => c.Code).ToListAsync())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var toAdd = defaults.Where(c => !existingCodes.Contains(c.Code)).ToList();
+            if (toAdd.Count == 0)
+            {
+                logger.LogInformation("Countries already seeded ({Count} present) — skipping.", existingCodes.Count);
+                return;
+            }
+
+            await context.Countries.AddRangeAsync(toAdd);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Seeded {Count} countries.", toAdd.Count);
+        }
+
+        // ------------------------------------------------------------------
+        // FEATURE FLAGS — all default to disabled so a fresh install starts
+        // in the SA-only mode. Dev role flips them on from the admin UI when
+        // each international slice is ready to expose.
+        // ------------------------------------------------------------------
+        private static async Task SeedFeatureFlagsAsync(ApplicationDbContext context, ILogger logger)
+        {
+            var existing = (await context.FeatureFlags.Select(f => f.Name).ToListAsync())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var toAdd = FeatureFlags.Defaults()
+                .Where(f => !existing.Contains(f.Name))
+                .ToList();
+
+            if (toAdd.Count == 0)
+            {
+                logger.LogInformation("Feature flags already seeded ({Count} present) — skipping.", existing.Count);
+                return;
+            }
+
+            foreach (var f in toAdd) f.UpdatedAt = DateTime.UtcNow;
+            await context.FeatureFlags.AddRangeAsync(toAdd);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Seeded {Count} feature flag(s) (all disabled).", toAdd.Count);
         }
 
         // ------------------------------------------------------------------

@@ -1,0 +1,110 @@
+@model WebApplication1.Services.CountryPriceImportService.ImportResult
+@{
+    ViewData["Title"] = "Country Prices — Preview";
+}
+
+<link href="~/css/admin.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fa-solid fa-globe"></i>
+                Preview: @Model.CountryName (@Model.CountryCode) — @Model.CurrencyCode
+            </h1>
+            <p class="text-muted mb-0">Review before committing.</p>
+        </div>
+        <a asp-action="CountryPrices" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Start over
+        </a>
+    </div>
+
+    @if (Model.HasFileErrors)
+    {
+        <div class="alert alert-danger">
+            <strong>File errors:</strong>
+            <ul class="mb-0">
+                @foreach (var err in Model.FileErrors) { <li>@err</li> }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card border-success h-100"><div class="card-body">
+            <div class="text-muted small">Will insert</div>
+            <div class="display-6 text-success fw-bold">@Model.WillInsertCount</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-primary h-100"><div class="card-body">
+            <div class="text-muted small">Will update</div>
+            <div class="display-6 text-primary fw-bold">@Model.WillUpdateCount</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-warning h-100"><div class="card-body">
+            <div class="text-muted small">Unknown SKU</div>
+            <div class="display-6 text-warning fw-bold">@Model.UnknownSkuCount</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-danger h-100"><div class="card-body">
+            <div class="text-muted small">Invalid rows</div>
+            <div class="display-6 text-danger fw-bold">@Model.InvalidCount</div>
+        </div></div></div>
+    </div>
+
+    @{ var totalWritable = Model.WillInsertCount + Model.WillUpdateCount; }
+    @if (totalWritable > 0)
+    {
+        <form asp-action="CountryPricesCommit" method="post" class="mb-4">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success btn-lg"
+                    onclick="return confirm('Save @totalWritable price(s) for @Model.CountryCode? Unknown SKUs and invalid rows will be skipped.');">
+                <i class="fa-solid fa-check"></i> Commit (@totalWritable change@(totalWritable == 1 ? "" : "s"))
+            </button>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Nothing to write. Fix the errors below or upload a different file.
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Line</th>
+                        <th>Status</th>
+                        <th>SKU</th>
+                        <th class="text-end">Price (@Model.CurrencyCode)</th>
+                        <th>Issues</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        var (cls, label) = row.Status switch
+                        {
+                            WebApplication1.Services.CountryPriceImportService.RowStatus.WillInsert  => ("",            "✅ Will insert"),
+                            WebApplication1.Services.CountryPriceImportService.RowStatus.WillUpdate  => ("table-info",  "↺ Will update existing"),
+                            WebApplication1.Services.CountryPriceImportService.RowStatus.UnknownSku  => ("table-warning","⚠ Unknown SKU — skipped"),
+                            _                                                                       => ("table-danger","❌ Invalid")
+                        };
+                        <tr class="@cls">
+                            <td>@row.LineNumber</td>
+                            <td><small>@label</small></td>
+                            <td><code>@row.SKU</code></td>
+                            <td class="text-end">@(row.Price > 0 ? row.Price.ToString("N2") : "")</td>
+                            <td>
+                                @if (row.Errors.Any())
+                                {
+                                    <ul class="small text-danger mb-0">
+                                        @foreach (var e in row.Errors) { <li>@e</li> }
+                                    </ul>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

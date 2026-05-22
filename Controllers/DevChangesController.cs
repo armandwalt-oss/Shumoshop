@@ -13,17 +13,29 @@ namespace WebApplication1.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly ProductCsvImportService _csvImporter;
+        private readonly CountryPriceImportService _priceImporter;
+        private readonly ICountryService _countries;
+        private readonly IFeatureFlagService _featureFlags;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> _userManager;
         private readonly ILogger<DevChangesController>? _logger;
 
         public DevChangesController(
             ApplicationDbContext context,
             IWebHostEnvironment env,
             ProductCsvImportService csvImporter,
+            CountryPriceImportService priceImporter,
+            ICountryService countries,
+            IFeatureFlagService featureFlags,
+            Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager,
             ILogger<DevChangesController>? logger = null)
         {
             _context = context;
             _env = env;
             _csvImporter = csvImporter;
+            _priceImporter = priceImporter;
+            _countries = countries;
+            _featureFlags = featureFlags;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -565,6 +577,129 @@ namespace WebApplication1.Controllers
             }
 
             return RedirectToAction(nameof(SubCategoryDetails), new { id = model.Id });
+        }
+
+        // ============================================================
+        // FEATURE FLAGS — Dev-only toggle page. Lets us hide the
+        // international features in production and flip them on
+        // gradually as each slice is ready to expose.
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> FeatureFlags()
+        {
+            var flags = await _featureFlags.GetAllAsync();
+            return View(flags);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleFeatureFlag(string name, bool enabled)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["ErrorMessage"] = "Flag name missing.";
+                return RedirectToAction(nameof(FeatureFlags));
+            }
+
+            var userId = _userManager.GetUserId(User);
+            await _featureFlags.SetEnabledAsync(name, enabled, userId);
+
+            TempData["SuccessMessage"] = $"'{name}' set to {(enabled ? "ENABLED" : "DISABLED")}.";
+            return RedirectToAction(nameof(FeatureFlags));
+        }
+
+        // ============================================================
+        // COUNTRY PRICES — geo-pricing CSV upload, one file per country.
+        // Lives on DevChanges (not Admin) because uploading per-country
+        // pricing is a developer / config job, not a daily operational task.
+        // The international.geo_pricing feature flag still gates whether
+        // these prices are actually shown to customers.
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> CountryPrices()
+        {
+            var countries = await _countries.GetActiveCountriesAsync();
+
+            var counts = await _context.ProductPrices
+                .GroupBy(pp => pp.CountryCode)
+                .Select(g => new { CountryCode = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CountryCode, x => x.Count);
+
+            var totalProducts = await _context.Products.CountAsync();
+
+            ViewBag.Countries = countries;
+            ViewBag.PriceCounts = counts;
+            ViewBag.TotalProducts = totalProducts;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult CountryPricesTemplate(string countryCode)
+        {
+            if (string.IsNullOrWhiteSpace(countryCode)) return BadRequest("Missing country code.");
+            var currency = _context.Countries.AsNoTracking()
+                .Where(c => c.Code == countryCode).Select(c => c.CurrencyCode).FirstOrDefault() ?? "";
+            var csv = CountryPriceImportService.BuildTemplateCsv(countryCode, currency);
+            return File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv",
+                $"shumoshop-prices-{countryCode}.csv");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CountryPricesPreview(string countryCode, IFormFile csvFile)
+        {
+            if (csvFile is null || csvFile.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please choose a CSV file before uploading.";
+                return RedirectToAction(nameof(CountryPrices));
+            }
+            if (csvFile.Length > 10 * 1024 * 1024)
+            {
+                TempData["ErrorMessage"] = "File too large (10 MB limit).";
+                return RedirectToAction(nameof(CountryPrices));
+            }
+
+            string csv;
+            using (var reader = new StreamReader(csvFile.OpenReadStream()))
+                csv = await reader.ReadToEndAsync();
+
+            var result = await _priceImporter.ParseAndValidateAsync(csv, countryCode);
+
+            TempData["PendingPriceCsv"] = csv;
+            TempData["PendingPriceCountry"] = countryCode;
+            TempData.Keep("PendingPriceCsv");
+            TempData.Keep("PendingPriceCountry");
+
+            return View("CountryPricesPreview", result);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CountryPricesCommit()
+        {
+            var csv = TempData["PendingPriceCsv"] as string;
+            var countryCode = TempData["PendingPriceCountry"] as string;
+            TempData.Keep("PendingPriceCsv");
+            TempData.Keep("PendingPriceCountry");
+
+            if (string.IsNullOrEmpty(csv) || string.IsNullOrEmpty(countryCode))
+            {
+                TempData["ErrorMessage"] = "No pending upload found. Please re-upload.";
+                return RedirectToAction(nameof(CountryPrices));
+            }
+
+            var validated = await _priceImporter.ParseAndValidateAsync(csv, countryCode);
+            var (inserted, updated) = await _priceImporter.CommitAsync(validated, _userManager.GetUserId(User));
+
+            TempData.Remove("PendingPriceCsv");
+            TempData.Remove("PendingPriceCountry");
+            TempData["SuccessMessage"] =
+                $"Country prices saved for {countryCode}: {inserted} inserted, {updated} updated, " +
+                $"{validated.InvalidCount} invalid + {validated.UnknownSkuCount} unknown SKU(s) skipped.";
+
+            return RedirectToAction(nameof(CountryPrices));
         }
 
         // ============================================================

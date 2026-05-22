@@ -1,0 +1,111 @@
+@model List<WebApplication1.Models.FeatureFlag>
+@{
+    ViewData["Title"] = "Feature Flags";
+}
+
+<link href="~/css/DevChanges.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fa-solid fa-toggle-on"></i>
+                Feature Flags
+            </h1>
+            <p class="text-muted mb-0">
+                Toggle experimental features without redeploying. Disabled flags
+                are completely invisible to customers and admins — only Dev sees
+                this page. Changes propagate within ~60 seconds.
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dev
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No feature flags have been seeded yet. Restart the app — the seeder
+            inserts the default set on startup.
+        </div>
+    }
+    else
+    {
+        // Group flags by namespace prefix for a clean layout.
+        // Inside an @if/else body we're already in code mode — no @{ } needed.
+        var grouped = Model
+            .GroupBy(f => f.Name.Contains('.') ? f.Name.Split('.')[0] : "other")
+            .OrderBy(g => g.Key);
+
+        foreach (var group in grouped)
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-light">
+                    <strong style="text-transform: capitalize;">@group.Key</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Flag</th>
+                                <th>Description</th>
+                                <th style="width: 15%;">Last changed</th>
+                                <th style="width: 12%; text-align: right;">State</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in group.OrderBy(f => f.Name))
+                            {
+                                <tr>
+                                    <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">@f.Name</code></td>
+                                    <td><span class="text-muted">@(f.Description ?? "")</span></td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @f.UpdatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                        </small>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <form asp-action="ToggleFeatureFlag" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="name" value="@f.Name" />
+                                            <input type="hidden" name="enabled" value="@((!f.IsEnabled).ToString().ToLower())" />
+                                            <button type="submit"
+                                                    class="btn btn-sm @(f.IsEnabled ? "btn-success" : "btn-outline-secondary")"
+                                                    style="min-width: 90px;">
+                                                @if (f.IsEnabled)
+                                                {
+                                                    <i class="fa-solid fa-toggle-on"></i> <span>Enabled</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-toggle-off"></i> <span>Disabled</span>
+                                                }
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="alert alert-secondary small">
+            <i class="fa-solid fa-circle-info"></i>
+            Toggling a flag flushes the in-memory cache immediately, so your own session
+            sees the change right away. Other server instances / other admins refresh on
+            their next cache miss (within 60 seconds).
+        </div>
+    }
+</div>

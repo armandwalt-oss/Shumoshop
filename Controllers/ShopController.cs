@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModels;
+using WebApplication1.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,10 +12,12 @@ namespace WebApplication1.Controllers
     public class ShopController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IAnalyticsService _analytics;
 
-        public ShopController(ApplicationDbContext context)
+        public ShopController(ApplicationDbContext context, IAnalyticsService analytics)
         {
             _context = context;
+            _analytics = analytics;
         }
 
         // GET: /Shop
@@ -136,6 +139,10 @@ namespace WebApplication1.Controllers
 
             if (product == null)
                 return NotFound();
+
+            // Log the product view for the admin Top-Viewed-Products widget.
+            // Best-effort — analytics failures must never break a page load.
+            await _analytics.LogProductViewAsync(product.Id, HttpContext);
 
             // SMART BACK (Featured / NewArrivals / Index)
             ViewBag.ReturnAction = string.IsNullOrWhiteSpace(returnAction) ? "Index" : returnAction;

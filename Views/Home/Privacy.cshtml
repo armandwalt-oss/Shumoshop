@@ -1,6 +1,208 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    .policy-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        background: #ffffff;
+        color: #1f2937;
+        line-height: 1.7;
+    }
+    .policy-header { text-align: center; margin-bottom: 50px; padding-bottom: 30px; border-bottom: 3px solid #3b82f6; }
+    .policy-header h1 { font-size: 2.5rem; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
+    .policy-header .last-updated { color: #64748b; font-size: 0.95rem; }
+    .policy-intro {
+        background: #f8fafc; padding: 28px; border-radius: 12px;
+        border-left: 4px solid #3b82f6; margin-bottom: 36px;
+    }
+    .policy-intro p { margin: 0; color: #475569; font-size: 1.05rem; }
+
+    .policy-section { margin-bottom: 36px; }
+    .policy-section h2 {
+        font-size: 1.5rem; font-weight: 700; color: #0f172a;
+        margin: 0 0 14px 0; padding-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .policy-section h3 {
+        font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 18px 0 8px;
+    }
+    .policy-section p, .policy-section li { color: #334155; }
+    .policy-section ul { padding-left: 24px; }
+    .policy-section li { margin-bottom: 6px; }
+
+    .info-box {
+        background: #fef3c7; border-left: 4px solid #f59e0b;
+        padding: 14px 18px; border-radius: 8px; margin: 16px 0;
+        color: #78350f; font-size: 0.95rem;
+    }
+    .contact-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .contact-table th, .contact-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+    .contact-table th { background: #f8fafc; color: #475569; font-weight: 600; width: 30%; }
+    .placeholder { background: #fef3c7; padding: 2px 6px; border-radius: 3px; font-style: italic; color: #92400e; }
+</style>
+
+<div class="policy-container">
+    <div class="policy-header">
+        <h1>Privacy Policy</h1>
+        <div class="last-updated">Last updated: @DateTime.Now.ToString("d MMMM yyyy")</div>
+    </div>
+
+    <div class="policy-intro">
+        <p>
+            ShumoShop ("we", "us", "our") respects your privacy. This policy
+            explains what personal information we collect about you, how we
+            use it, who we share it with, and the rights you have over your
+            information. It is written to comply with the South African
+            <strong>Protection of Personal Information Act, 2013 ("POPIA")</strong>,
+            and reflects the additional rights afforded to customers in other
+            jurisdictions (UK / EU GDPR, California CCPA) where ShumoShop
+            sells internationally.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>1. Who we are</h2>
+        <p>The Responsible Party (as defined in POPIA) for processing your personal information is:</p>
+        <table class="contact-table">
+            <tr><th>Legal entity</th><td><span class="placeholder">[Insert registered company name]</span></td></tr>
+            <tr><th>Registration number</th><td><span class="placeholder">[Insert company registration / CIPC number]</span></td></tr>
+            <tr><th>Trading address</th><td>138 Botha Avenue, Lyttelton Manor, Centurion, 0157, South Africa</td></tr>
+            <tr><th>Postal address</th><td><span class="placeholder">[Insert postal address if different]</span></td></tr>
+            <tr><th>Email</th><td>info@shumoshop.co.za</td></tr>
+            <tr><th>Information Officer</th><td><span class="placeholder">[Name + email]</span></td></tr>
+            <tr><th>Deputy Information Officer(s)</th><td><span class="placeholder">[Name + email — optional]</span></td></tr>
+        </table>
+        <div class="info-box">
+            <strong>POPIA reminder:</strong> Every business operating in South Africa
+            must appoint an Information Officer and register them with the
+            Information Regulator. The default Information Officer is the head
+            of the business (e.g. CEO / sole proprietor) unless explicitly
+            delegated in writing.
+        </div>
+    </div>
+
+    <div class="policy-section">
+        <h2>2. What personal information we collect</h2>
+        <p>We collect personal information directly from you when you create an account, place an order, contact us, or otherwise interact with the site. The categories are:</p>
+        <ul>
+            <li><strong>Identity data</strong> — name, surname.</li>
+            <li><strong>Contact data</strong> — email address, phone number, billing address, shipping address.</li>
+            <li><strong>Account data</strong> — username, hashed password, profile preferences (notification opt-ins).</li>
+            <li><strong>Transaction data</strong> — products ordered, prices paid, payment method, payment reference (we do <em>not</em> store full card details — see "Payment processors" below).</li>
+            <li><strong>Communication data</strong> — messages you send us through Contact Us, returns, or support.</li>
+            <li><strong>Technical data</strong> — IP-derived country, browser type, device, and basic interaction logs (see our <a asp-action="CookiePolicy">Cookie Policy</a> for details).</li>
+        </ul>
+    </div>
+
+    <div class="policy-section">
+        <h2>3. Why we collect it and the lawful basis</h2>
+        <p>Under POPIA section 11, we must have a lawful basis for each processing purpose. Ours are:</p>
+        <ul>
+            <li><strong>Performance of a contract</strong> — to fulfil orders, deliver goods, handle returns, process refunds.</li>
+            <li><strong>Compliance with a legal obligation</strong> — tax records (we are required to keep transaction records for at least 5 years), POPIA compliance itself, anti-fraud checks.</li>
+            <li><strong>Legitimate interest</strong> — fraud prevention, site security, basic anonymised analytics so we can improve the product.</li>
+            <li><strong>Consent</strong> — for marketing emails, non-essential cookies, SMS notifications. You can withdraw consent at any time from <em>Account → Settings</em>.</li>
+        </ul>
+    </div>
+
+    <div class="policy-section">
+        <h2>4. Who we share it with</h2>
+        <p>We do not sell your personal information. We share it only with the service providers we need to operate the business, each acting as an Operator under POPIA:</p>
+        <ul>
+            <li><strong>Payment processors</strong> — PayFast (Pty) Ltd for ZAR card payments. We pass them your order number, amount, name and email so they can take payment and report it back to us. Card details are entered on PayFast's site and never reach our servers. Future international card processing will be handled by Stripe and PayPal under the same model.</li>
+            <li><strong>Couriers</strong> — The Courier Guy (CourierIT (Pty) Ltd) for South African deliveries. For international shipments we will use DHL Express, FedEx, and Aramex. We share the recipient name, address, phone, and email so they can deliver the parcel and contact you about it.</li>
+            <li><strong>Email service provider</strong> — <span class="placeholder">[Insert SMTP provider, e.g. SendGrid / Mailgun / Brevo]</span>, used to send order confirmations, password resets, and account notifications.</li>
+            <li><strong>Hosting</strong> — <span class="placeholder">[Insert hosting provider, e.g. Microsoft Azure / AWS]</span>, where the site and its database run.</li>
+            <li><strong>Analytics</strong> — Google Analytics 4 and Microsoft Clarity, if you have consented to non-essential cookies. These see your browsing activity on the site in aggregated, pseudonymous form. They do <em>not</em> see your name, email, order details, or payment data.</li>
+        </ul>
+        <p>We require every operator to handle your information in accordance with POPIA and applicable foreign laws.</p>
+    </div>
+
+    <div class="policy-section">
+        <h2>5. Cross-border transfers</h2>
+        <p>
+            Some of our service providers (notably analytics and email) are located
+            outside South Africa. POPIA section 72 allows us to transfer personal
+            information across borders only when adequate protection exists in the
+            destination country, the recipient is contractually bound to similar
+            protection, or you have consented. We rely on a combination of standard
+            contractual clauses and provider-level certifications (e.g. Google's
+            EU-US Data Privacy Framework participation).
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>6. How long we keep it</h2>
+        <ul>
+            <li><strong>Account data</strong> — until you delete your account. After deletion, your account row is anonymised (name, email, phone, address removed); historical order data is retained for the period below.</li>
+            <li><strong>Order, invoice, and tax records</strong> — 5 years from the end of the financial year in which the order was placed (South African Tax Administration Act).</li>
+            <li><strong>Communications (contact form, support)</strong> — 2 years from last contact.</li>
+            <li><strong>Marketing consent logs</strong> — for as long as you remain subscribed, plus 3 years after withdrawal to demonstrate compliance.</li>
+            <li><strong>Anonymised analytics</strong> — up to 14 months in GA4, up to 30 days for Clarity recordings.</li>
+        </ul>
+    </div>
+
+    <div class="policy-section">
+        <h2>7. Your rights</h2>
+        <p>Under POPIA you have the right to:</p>
+        <ul>
+            <li><strong>Access</strong> — request a copy of the personal information we hold about you. Use <em>Account → Settings → Download Your Data</em> to retrieve it instantly as a JSON file, or email us.</li>
+            <li><strong>Correction</strong> — fix incorrect or outdated information. Use <em>Account → Edit Profile</em> for self-service, or email us.</li>
+            <li><strong>Deletion / destruction</strong> — request that we delete your information. Use <em>Account → Settings → Delete Account</em>. We will retain only the records we are legally required to keep (e.g. tax invoices) in an anonymised form.</li>
+            <li><strong>Objection</strong> — object to processing for direct marketing at any time. Use the unsubscribe link in any marketing email, or <em>Account → Settings → Notifications</em>.</li>
+            <li><strong>Complain</strong> — lodge a complaint with the South African Information Regulator if you believe we have not handled your information correctly: <a href="https://inforegulator.org.za" target="_blank" rel="noopener">inforegulator.org.za</a>, complaints@inforegulator.org.za.</li>
+        </ul>
+        <p>If you are an EU/UK resident, equivalent GDPR rights apply, including data portability and the right to lodge a complaint with your national data protection authority.</p>
+    </div>
+
+    <div class="policy-section">
+        <h2>8. Security</h2>
+        <p>We use industry-standard safeguards to protect your information:</p>
+        <ul>
+            <li>HTTPS / TLS for every page and API call.</li>
+            <li>Passwords hashed with ASP.NET Identity (PBKDF2 / SHA-256, per-user salt).</li>
+            <li>Anti-CSRF tokens on every state-changing form.</li>
+            <li>Account lockout after 5 failed sign-in attempts within 15 minutes.</li>
+            <li>HSTS, Content-Security-Policy, X-Frame-Options and other security response headers.</li>
+            <li>Soft-delete and PII anonymisation on customer-initiated account deletion.</li>
+            <li>Card details never stored on our servers — handled directly by PayFast / Stripe / PayPal.</li>
+        </ul>
+    </div>
+
+    <div class="policy-section">
+        <h2>9. Children</h2>
+        <p>
+            We do not knowingly sell to or collect information from children under 18.
+            POPIA prohibits processing children's personal information except with the
+            explicit consent of a competent person (parent or guardian) and limited to
+            specific purposes. If you believe a child has provided information to us,
+            email <a href="mailto:info@shumoshop.co.za">info@shumoshop.co.za</a> and we
+            will delete it.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>10. Changes to this policy</h2>
+        <p>
+            We may update this policy from time to time. When we make material changes,
+            we will update the "Last updated" date at the top and, where appropriate,
+            notify you by email or via a banner on the site before the change takes
+            effect.
+        </p>
+    </div>
+
+    <div class="policy-section">
+        <h2>11. How to contact us</h2>
+        <p>
+            For any privacy question, to exercise a right above, or to lodge a complaint:
+        </p>
+        <table class="contact-table">
+            <tr><th>Information Officer</th><td><span class="placeholder">[Name]</span> — <a href="mailto:privacy@shumoshop.co.za">privacy@shumoshop.co.za</a></td></tr>
+            <tr><th>Postal</th><td>138 Botha Avenue, Lyttelton Manor, Centurion, 0157, South Africa</td></tr>
+            <tr><th>General enquiries</th><td><a href="mailto:info@shumoshop.co.za">info@shumoshop.co.za</a></td></tr>
+        </table>
+    </div>
+</div>

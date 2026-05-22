@@ -19,11 +19,116 @@
         <p>Order placed on @Model.OrderDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</p>
     </div>
 
+    @{
+        // Status timeline — ordered, with "current" highlight and "done" marker.
+        var steps = new[] { "Pending", "Processing", "Shipped", "Delivered" };
+        var currentIndex = Array.IndexOf(steps, Model.Status);
+        var isCancelled  = Model.Status == "Cancelled";
+
+        string? nextStep = Model.Status switch
+        {
+            "Pending"    => "Processing",
+            "Processing" => "Shipped",
+            "Shipped"    => "Delivered",
+            _ => null
+        };
+        string nextStepHint = Model.Status switch
+        {
+            "Pending"    => "Start preparing the order. Click below to mark it as Processing.",
+            "Processing" => "When the parcel is collected, enter the courier + tracking number, then mark as Shipped.",
+            "Shipped"    => "When the customer confirms receipt (or the courier reports delivery), mark as Delivered.",
+            "Delivered"  => "This order is complete. No further action needed.",
+            "Cancelled"  => "This order was cancelled. No further action needed.",
+            _ => ""
+        };
+    }
+
+    @* ── Status timeline ───────────────────────────────────────── *@
+    <div class="detail-section" style="grid-column: 1 / -1; margin-bottom: 0;">
+        <h2><i class="fa-solid fa-route"></i> Status timeline</h2>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 16px 0;">
+            @for (int i = 0; i < steps.Length; i++)
+            {
+                var done    = !isCancelled && i < currentIndex;
+                var current = !isCancelled && i == currentIndex;
+                var pending = isCancelled || i > currentIndex;
+
+                var bg     = done ? "#16a34a" : current ? "#0d6efd" : "#e5e7eb";
+                var fg     = pending ? "#9ca3af" : "#fff";
+                var border = current ? "2px solid #0b5ed7" : "2px solid transparent";
+
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <div style="background:@bg; color:@fg; border:@border; padding:6px 14px; border-radius:999px; font-weight:600; font-size:.9rem;">
+                        @if (done)
+                        {
+                            <i class="fa-solid fa-check" style="margin-right:4px;"></i>
+                        }
+                        @steps[i]
+                    </div>
+                    @if (i < steps.Length - 1)
+                    {
+                        <i class="fa-solid fa-arrow-right" style="color:@(done ? "#16a34a" : "#9ca3af");"></i>
+                    }
+                </div>
+            }
+
+            @if (isCancelled)
+            {
+                <div style="margin-left:12px; background:#dc2626; color:#fff; padding:6px 14px; border-radius:999px; font-weight:600; font-size:.9rem;">
+                    <i class="fa-solid fa-ban"></i> Cancelled
+                </div>
+            }
+        </div>
+
+        @* Next-step callout — prominent, with a one-click button when the
+           transition needs no extra data. For Processing → Shipped, the
+           admin uses the form below to enter tracking. *@
+        @if (nextStep is not null)
+        {
+            <div style="background:#eff6ff; border-left:4px solid #0d6efd; padding:14px 18px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <div>
+                    <strong style="color:#1e3a8a;">Next step:</strong> @nextStepHint
+                </div>
+                @if (nextStep == "Shipped")
+                {
+                    <span style="font-size:.85rem; color:#6b7280; font-style:italic;">
+                        Use the form below to mark as Shipped (tracking required).
+                    </span>
+                }
+                else
+                {
+                    <form asp-action="UpdateOrderStatus" method="post" style="margin:0;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="status" value="@nextStep" />
+                        <button type="submit" class="btn-primary"
+                                style="background:#16a34a; border-color:#16a34a;"
+                                onclick="return confirm('Mark order #@Model.OrderNumber as @nextStep?');">
+                            <i class="fa-solid fa-arrow-right"></i> Mark as @nextStep
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+        else if (Model.Status == "Delivered")
+        {
+            <div style="background:#dcfce7; border-left:4px solid #16a34a; padding:14px 18px; border-radius:8px; color:#166534;">
+                <i class="fa-solid fa-check-circle"></i> <strong>Order complete.</strong> @nextStepHint
+            </div>
+        }
+        else if (isCancelled)
+        {
+            <div style="background:#fee2e2; border-left:4px solid #dc2626; padding:14px 18px; border-radius:8px; color:#7f1d1d;">
+                <i class="fa-solid fa-ban"></i> <strong>Cancelled.</strong> @nextStepHint
+            </div>
+        }
+    </div>
+
     <div class="details-grid">
         <!-- Order Status & Actions -->
         <div class="detail-section">
             <h2><i class="fa-solid fa-info-circle"></i> Order Status</h2>
-            
+
             <div class="current-status">
                 <span class="status-badge status-@Model.Status.ToLower()" style="font-size: 1.2rem; padding: 12px 24px;">
                     @Model.Status

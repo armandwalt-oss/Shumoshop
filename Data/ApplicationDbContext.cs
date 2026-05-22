@@ -33,6 +33,19 @@ namespace WebApplication1.Data
         // NEW: Shipping configuration (admin-editable, single row).
         public DbSet<ShippingSettings> ShippingSettings { get; set; }
 
+        // NEW: Markets ShumoShop ships to. Drives geo-pricing + carrier choice.
+        public DbSet<Country> Countries { get; set; }
+
+        // NEW: Named feature toggles, editable by Dev role from the admin UI.
+        public DbSet<FeatureFlag> FeatureFlags { get; set; }
+
+        // NEW: Per-country price overrides for products.
+        public DbSet<ProductPrice> ProductPrices { get; set; }
+
+        // NEW: Product view log. One row per product detail page hit, used
+        // for the admin "Top Viewed Products" widget. No IP / UA stored.
+        public DbSet<ProductView> ProductViews { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -210,6 +223,33 @@ namespace WebApplication1.Data
             modelBuilder.Entity<Product>()
                 .HasIndex(p => p.SKU)
                 .IsUnique();
+
+            // ProductPrice — one row per (product, country). Lookup hot path
+            // is by Product+Country, so a unique composite index covers both
+            // the constraint and the fast read.
+            modelBuilder.Entity<ProductPrice>()
+                .HasIndex(pp => new { pp.ProductId, pp.CountryCode })
+                .IsUnique();
+
+            modelBuilder.Entity<ProductPrice>()
+                .HasOne(pp => pp.Product)
+                .WithMany()
+                .HasForeignKey(pp => pp.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductPrice>()
+                .HasOne(pp => pp.Country)
+                .WithMany()
+                .HasForeignKey(pp => pp.CountryCode)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ProductView — index on (ProductId, ViewedAt) is the hot path
+            // for "top N over the last W days" queries. ViewedAt alone is
+            // useful for the timeline / retention queries.
+            modelBuilder.Entity<ProductView>()
+                .HasIndex(pv => new { pv.ProductId, pv.ViewedAt });
+            modelBuilder.Entity<ProductView>()
+                .HasIndex(pv => pv.ViewedAt);
         }
     }
 }
